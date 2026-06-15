@@ -1,0 +1,68 @@
+{
+  "name": "y-sync",
+  "version": "1.0.0",
+  "description": "Y server and client for syncing Yjs documents over WebRTC",
+  "keywords": [
+    "yjs",
+    "webrtc",
+    "sync",
+    "collaboration"
+  ],
+  "homepage": "https://github.com/bcibibi/y-sync#readme",
+  "bugs": {
+    "url": "https://github.com/bcibibi/y-sync/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcibibi/y-sync.git"
+  },
+  "license": "MIT",
+  "author": "bcibi",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./client": {
+      "types": "./dist/esm/client/index.d.ts",
+      "import": "./dist/esm/client/index.js",
+      "require": "./dist/cjs/client/index.js",
+      "default": "./dist/esm/client/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:dist-types": "node -e \"const fs=require('node:fs'); fs.mkdirSync('dist/cjs',{recursive:true}); fs.writeFileSync('dist/cjs/package.json', '{\\n  \\\"type\\\": \\\"commonjs\\\"\\n}\\n'); fs.mkdirSync('dist/esm',{recursive:true}); fs.writeFileSync('dist/esm/package.json', '{\\n  \\\"type\\\": \\\"module\\\"\\n}\\n');\"",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:dist-types",
+    "verify:esm": "node --input-type=module -e \"import('./dist/esm/index.js').then(() => { console.log('esm:ok'); })\"",
+    "verify:cjs": "node -e \"require('./dist/cjs/index.js'); console.log('cjs:ok');\"",
+    "verify:client:esm": "node --input-type=module -e \"import('./dist/esm/client/index.js').then(() => { console.log('client esm:ok'); })\"",
+    "verify:client:cjs": "node -e \"require('./dist/cjs/client/index.js'); console.log('client cjs:ok');\"",
+    "verify:modules": "npm run build && npm run verify:esm && npm run verify:cjs && npm run verify:client:esm && npm run verify:client:cjs"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.13",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.9.1",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "yjs": "^13.6.31"
+  },
+  "dependencies": {
+    "debug": "^4.4.3"
+  }
+}
