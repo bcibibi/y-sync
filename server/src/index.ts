@@ -8,6 +8,13 @@ export class YSync {
 
     constructor(private server: http.Server) { 
         this.ws = new YSyncWebSocket(server);
+        this.ws.on('connection', (socket) => {
+            console.log("New YSyncSocket connection established");
+            socket.on('test', (data) => {
+                console.log("Received test event with data of type", typeof data, ":", data);
+                socket.send('testResponse', { message: 'Hello from server!' });
+            });
+        });
     }
 
 

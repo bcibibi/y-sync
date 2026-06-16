@@ -42,8 +42,5 @@
     "jest": "^30.4.2",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3"
-  },
-  "dependencies": {
-    "y-sync": "workspace:*"
   }
 }

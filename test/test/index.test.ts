@@ -31,7 +31,7 @@ beforeAll(async () => {
 
 test("test", async () => {
     const client = YSyncClient.connect(`ws://localhost:${PORT}`);
-    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+    await new Promise<void>((resolve) => setTimeout(resolve, 3000));
     client.close();
 }, 10000);
 
