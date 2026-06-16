@@ -1,0 +1,72 @@
+import EventEmitter from "events";
+import type { YSyncClientWebSocket } from "../websocket/websocket";
+import * as Y from "yjs";
+import type { YDocumentProvider } from "./provider";
+
+export class YSyncDocument extends EventEmitter {
+
+    private documents: Map<string, Y.Doc> = new Map();
+
+    constructor(private ws: YSyncClientWebSocket, private provider: YDocumentProvider) {
+        super();
+        this.ws.on('syncStep1', this.handleSyncStep1.bind(this));
+        this.ws.on('syncStep2', this.handleSyncStep2.bind(this));
+        this.ws.on('syncUpdate', this.handleSyncUpdate.bind(this));
+    }
+
+    sync(doc: Y.Doc, cb?: (doc: Y.Doc) => void) {
+        this.documents.set(doc.guid, doc);
+        if (cb) {
+            this.once('synced:' + doc.guid, (doc: Y.Doc) => {
+                this.provider.addYDocument(doc);
+                this.documents.delete(doc.guid);
+                doc.on('update', this.handleDocUpdate.bind(this));
+                cb(doc);
+            });
+        }
+        this.syncStep1(doc);
+    }
+
+    private syncStep1(doc: Y.Doc) {
+        this.ws.send('syncStep1', doc.guid, Y.encodeStateVector(doc));
+    }
+
+    private syncStep2(doc: Y.Doc, update: Uint8Array) {
+        this.ws.send('syncStep2', doc.guid, Y.encodeStateAsUpdate(doc, update));
+    }
+
+    private handleSyncStep1(docId: string, update: Uint8Array) {
+        const doc = this.documents.get(docId);
+        if (!doc) {
+            console.error(`Document with id ${docId} not found`);
+            return;
+        }
+        this.syncStep2(doc, update);
+    }
+
+    private handleSyncStep2(docId: string, update: Uint8Array) {
+        const doc = this.documents.get(docId);
+        if (!doc) {
+            console.error(`Document with id ${docId} not found`);
+            return;
+        }
+        Y.applyUpdate(doc, update, this);
+        this.emit('synced:' + docId, doc);
+    }
+
+    private handleSyncUpdate(docId: string, update: Uint8Array) {
+        const doc = this.provider.getYDocument(docId);
+        if (!doc) {
+            console.error(`Document with id ${docId} not found`);
+            return;
+        }
+        Y.applyUpdate(doc, update, this);
+    }
+
+    private handleDocUpdate(update: Uint8Array, transactionOrigin: any, doc: Y.Doc, transaction: Y.Transaction) {
+        if (transactionOrigin === this) {
+            return;
+        }
+        this.ws.send('syncUpdate', doc.guid, update);
+    }
+}
