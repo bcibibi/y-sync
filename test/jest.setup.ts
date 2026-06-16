@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import path from 'path';
 
-process.env.DEBUG = "docxhtml:*";
+process.env.DEBUG = "y-sync:*";
 
 const cwd = path.join(import.meta.dirname, '..');
 

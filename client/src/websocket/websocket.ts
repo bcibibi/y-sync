@@ -1,4 +1,6 @@
+import debug from "debug";
 
+const log = debug("y-sync:client:ws");
 
 export interface YSyncClientWebSocketOptions {
     autoconnect?: boolean;
@@ -10,7 +12,10 @@ export class YSyncClientWebSocket {
     private connecting: boolean = false;
     private ws?: WebSocket;
 
-    constructor(private url: string, private options?: YSyncClientWebSocketOptions) {
+    constructor(private url: string, private options: YSyncClientWebSocketOptions = {
+        autoconnect: true,
+        websocket: WebSocket
+    }) {
         if (this.options?.autoconnect) {
             this.connect();
         }
@@ -37,7 +42,7 @@ export class YSyncClientWebSocket {
         this.ws?.close();
         this.connected = false;
         this.connecting = false;
-        console.log('WebSocket disconnected');
+        log('WebSocket disconnected');
     }
 
     send(data: string | ArrayBuffer | Blob) {
@@ -54,16 +59,16 @@ export class YSyncClientWebSocket {
     private handleOpen() {
         this.connected = true;
         this.connecting = false;
-        console.log('WebSocket connected');
+        log('WebSocket handleOpen');
     }
 
     private handleClose() {
         this.connected = false;
         this.connecting = false;
-        console.log('WebSocket disconnected');
+        log('WebSocket handleClose');
     }
 
     private handleError(error: Event) {
-        console.error('WebSocket error:', error);
+        log('WebSocket handleError:', error);
     }
 }
