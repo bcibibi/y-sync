@@ -1,0 +1,22 @@
+{
+  "name": "YSync Dev Container",
+  "dockerComposeFile": "./docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/workspace",
+  "runServices": [
+    "dev",
+    "redis"
+  ],
+  "shutdownAction": "stopCompose",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "orta.vscode-jest",
+        "ms-azuretools.vscode-containers"
+      ]
+    }
+  }
+}
