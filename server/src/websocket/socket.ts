@@ -5,7 +5,7 @@ import * as encoding from "lib0/encoding";
 import EventEmitter from 'events';
 
 interface YSyncSocketEvents {
-    disconnect: [];
+    disconnect: [socket: YSyncSocket];
     error: [error: Error];
     [event: string]: any[];
 }
@@ -28,7 +28,7 @@ export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
     }
 
     private handleClose() {
-        this.emit('disconnect');
+        this.emit('disconnect', this);
     }
 
     private handlePing() {

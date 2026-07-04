@@ -1,7 +1,7 @@
 import EventEmitter from "events";
-import type { YSyncClientWebSocket } from "../websocket/websocket";
+import type { YSyncClientWebSocket } from "../websocket/websocket.js";
 import * as Y from "yjs";
-import type { YDocumentProvider } from "./provider";
+import type { YDocumentProvider } from "./provider.js";
 
 export class YSyncDocument extends EventEmitter {
 
