@@ -14,15 +14,9 @@ let ySync: YSync;
 
 beforeAll(async () => {
 
-    ySync = new YSync(server);
-
-    ySync.use((doc, action) => {
-        if (action === 'create') {
-            console.log(`Document created with id: ${doc.guid}`);
-            doc.getMap("testMap").set("testKey", "testValue");
-        } else if (action === 'update') {
-            console.log(`Document updated with id: ${doc.guid}`);
-            console.log(`Document content:`, doc.getMap("testMap").toJSON());
+    ySync = new YSync(server, {
+        awareness: {
+            resyncInterval: 2000
         }
     });
 
@@ -39,19 +33,11 @@ beforeAll(async () => {
 }, 10000);
 
 
-test("test", async () => new Promise<void>((resolve, reject) => {
+test("test", async () => new Promise<void>(async (resolve, reject) => {
+    await new Promise<void>((resolve) => setTimeout(resolve, 2000));
     const client = new YSyncClient(`ws://localhost:${PORT}`);
-    client.on('connect', async () => {
-        console.log("Client connected to server");
-        const doc = await client.getYDocument("test-doc");
-        await new Promise<void>((resolve) => setTimeout(resolve, 1000));
-        console.log("Document retrieved:", doc.guid);
-        console.log("Document content:", doc.getMap("testMap").toJSON());
-        expect(doc.getMap("testMap").get("testKey")).toBe("testValue");
-        doc.getMap("testMap").set("testKey", "newValue");
-        await new Promise<void>((resolve) => setTimeout(resolve, 2000));
-        client.close();
-    });
+    const client2 = new YSyncClient(`ws://localhost:${PORT}`);
+
     client.on('disconnect', () => {
         console.log("Client disconnected from server");
         resolve();
@@ -60,6 +46,17 @@ test("test", async () => new Promise<void>((resolve, reject) => {
         console.error("Client encountered an error:", error);
         reject(error);
     });
+
+    await new Promise<void>((resolve) => client.on('connect', resolve));
+    await new Promise<void>((resolve) => client2.on('connect', resolve));
+    const awareness = client.getAwareness();
+    const awareness2 = client2.getAwareness();
+    awareness.setLocalState({ user: { name: "Alice" } });
+    await new Promise<void>((resolve) => setTimeout(resolve, 3000));
+    const state = awareness2.states.get(awareness.clientID);
+    console.log("Client 2 received awareness state from Client 1:", state);
+    client.close();
+    client2.close();
 }), 10000);
 
 afterAll(async () => {

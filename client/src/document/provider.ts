@@ -7,6 +7,10 @@ export class YDocumentProvider {
 
     constructor() {}
 
+    forEach(callback: (doc: Y.Doc) => void) {
+        this.documents.forEach(callback);
+    }
+
     getYDocument(id: string): Y.Doc | undefined {
         return this.documents.get(id);
     }

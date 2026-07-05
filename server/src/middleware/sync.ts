@@ -1,6 +1,5 @@
 import type { YSyncSocket } from "../websocket/socket.js";
 import type { YSyncWebSocketOptions } from "../websocket/websocket.js";
-import * as Y from 'yjs';
 import debug from 'debug';
 import type { YSyncCallbacks } from "../model/callback.js";
 

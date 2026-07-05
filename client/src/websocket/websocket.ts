@@ -2,16 +2,13 @@ import debug from "debug";
 import EventEmitter from "events";
 import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
+import type { YSyncClientWebSocketOptions } from "../model/options.js";
 
 const log = debug("y-sync:client:ws");
 
-export interface YSyncClientWebSocketOptions {
-    autoconnect?: boolean;
-    websocket?: typeof WebSocket;
-}
-
 interface YSyncClientWebSocketEvents {
     connect: [];
+    reconnect: [];
     disconnect: [];
     error: [error: Event];
     [event: string]: any[];
@@ -20,26 +17,34 @@ interface YSyncClientWebSocketEvents {
 export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvents> {
     private connected: boolean = false;
     private connecting: boolean = false;
-    private ws?: WebSocket;
+    private nbConnection: number = 0;
+    private ws: WebSocket | undefined;
+    private lastMessageTime: number;
+    private _websocket: typeof WebSocket;
+    private reconnectInterval: NodeJS.Timeout;
 
-    constructor(private url: string, private options: YSyncClientWebSocketOptions = {
-        autoconnect: true,
-        websocket: WebSocket
-    }) {
+    constructor(private url: string, {
+        autoconnect = true,
+        reconnectInterval = 2000,
+        websocket = WebSocket
+    }: YSyncClientWebSocketOptions) {
         super();
-        if (this.options?.autoconnect) {
+        this.lastMessageTime = Date.now();
+        this._websocket = websocket;
+        if (autoconnect) {
             this.connect();
         }
+        this.reconnectInterval = setInterval(this.reconnect.bind(this, reconnectInterval), reconnectInterval);
     }
 
-    connect() {
+    connect(reconnection: boolean = false) {
         if (this.connected || this.connecting) {
             return;
         }
 
         this.connecting = true;
-        const WebSocketClass = this.options?.websocket || WebSocket;
-        this.ws = new WebSocketClass(this.url);
+        log(`Connecting to WebSocket server at ${this.url} using ${this._websocket.name}`);
+        this.ws = new this._websocket(this.url);
         this.ws.binaryType = 'arraybuffer';
         this.ws.onopen = this.handleOpen.bind(this);
         this.ws.onclose = this.handleClose.bind(this);
@@ -47,21 +52,35 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
         this.ws.onmessage = this.handleMessage.bind(this);
     }
 
-    disconnect() {
+    disconnect(reconnection: boolean = false) {
         if (!this.connected) {
             return;
         }
         this.ws?.close();
+        this.ws = undefined;
         this.connected = false;
         this.connecting = false;
-        this.emit('disconnect');
+        if (!reconnection) {
+            clearInterval(this.reconnectInterval);
+        }
         log('WebSocket disconnected');
+    }
+
+    private reconnect(interval: number) {
+        log('Checking WebSocket connection for reconnection...');
+        log(`Last message time: ${this.lastMessageTime}, current time: ${Date.now()}, interval: ${interval}`);
+        if (Date.now() - this.lastMessageTime > interval) {
+            log('WebSocket connection lost, reconnecting...');
+            this.disconnect(true);
+            this.connect(true);
+        }
     }
 
     send(event: string, ...args: any[]) {
         if (!this.connected) {
-            throw new Error('WebSocket is not connected');
+            return;
         }
+        log('WebSocket sending message:', event, ...args);
         const encoder = encoding.createEncoder();
         encoding.writeVarString(encoder, event);
         for (const arg of args) {
@@ -82,6 +101,7 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
             }
             log('WebSocket message received:', event, ...args);
             this.emit(event, ...args);
+            this.lastMessageTime = Date.now();
         } else {
             log('WebSocket message received:', data);
         }
@@ -90,7 +110,14 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
     private handleOpen() {
         this.connected = true;
         this.connecting = false;
-        this.emit('connect');
+        this.nbConnection++;
+        if (this.nbConnection > 1) {
+            log('WebSocket reconnected');
+            this.emit('reconnect');
+        } else {
+            log('WebSocket first connection established');
+            this.emit('connect');
+        }
         log('WebSocket handleOpen');
     }
 
@@ -101,8 +128,8 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
         log('WebSocket handleClose');
     }
 
-    private handleError(error: Event) {
-        this.emit('error', error);
+    private handleError(error: ErrorEvent) {
         log('WebSocket handleError:', error);
+        this.emit('error', error);
     }
 }

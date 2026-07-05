@@ -3,6 +3,7 @@ import { WebSocket } from 'ws';
 import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
 import EventEmitter from 'events';
+import crypto from 'crypto';
 
 interface YSyncSocketEvents {
     disconnect: [socket: YSyncSocket];
@@ -13,8 +14,15 @@ interface YSyncSocketEvents {
 
 export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
 
+    private _id: string;
+
+    get id() {
+        return this._id;
+    }
+
     constructor(private ws: WebSocket, private request: http.IncomingMessage) { 
         super();
+        this._id = crypto.randomUUID();
         ws.on('message', this.handleMessage.bind(this));
         ws.on('error', this.handleError.bind(this));
         ws.on('close', this.handleClose.bind(this));
@@ -54,6 +62,9 @@ export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
     }
 
     send(event: string, ...args: any[]) {
+        if (this.ws.readyState !== WebSocket.OPEN) {
+            return;
+        }
         const encoder = encoding.createEncoder();
         encoding.writeVarString(encoder, event);
         for (const arg of args) {
