@@ -2,35 +2,41 @@ import type { YSyncSocket } from "../websocket/socket.js";
 import { YDocProvider } from "./YDocProvider.js";
 import * as Y from 'yjs';
 import debug from 'debug';
-import type { YSyncCallbacks } from "../model/callback.js";
+import type { YSyncCallbacks } from "../types/callback.js";
+import type { MemoryYDocEntry } from "../types/memoryprovider.js";
 
 const log = debug('y-sync:server:memory-provider');
 
 export class MemoryYDocProvider extends YDocProvider {
-    private docs: Map<string, { doc: Y.Doc, sockets: YSyncSocket[] }> = new Map();
+    private docs: Map<string, MemoryYDocEntry> = new Map();
 
     constructor() {
         super();
-        this.docs = new Map<string, { doc: Y.Doc, sockets: YSyncSocket[] }>();
+        this.docs = new Map<string, MemoryYDocEntry>();
     }
 
     private getYDocument(id: string, socket: YSyncSocket, { onCreate, onUpdate }: YSyncCallbacks): Y.Doc {
-        let entry = this.docs.get(id);
-        if (!entry) {
-            const doc = new Y.Doc({ guid: id });
-            onCreate(doc);
-            doc.on('update', () => onUpdate(doc));
-            doc.on('update', this.handleDocUpdate.bind(this));
-            entry = { doc, sockets: [socket] };
-            this.docs.set(id, entry);
-            log(`Created new document ${id}`);
-        } else {
+        const entry = this.docs.get(id);
+
+        if (entry) {
             if (!entry.sockets.includes(socket)) {
                 entry.sockets.push(socket);
                 log(`Added socket to existing document ${id}`);
             }
-        }
-        return entry.doc;
+            return entry.doc;
+        } 
+
+        return this.newYDocument(id, socket, { onCreate, onUpdate });
+    }
+
+    private newYDocument(id: string, socket: YSyncSocket, { onCreate, onUpdate }: YSyncCallbacks): Y.Doc {
+        const doc = new Y.Doc({ guid: id });
+        onCreate(doc);
+        doc.on('update', () => onUpdate(doc));
+        doc.on('update', this.handleDocUpdate.bind(this));
+        this.docs.set(id, { doc, sockets: [socket] });
+        log(`Created new document ${id}`);
+        return doc;
     }
 
     private handleDocUpdate(update: Uint8Array, transactionOrigin: any, doc: Y.Doc, transaction: Y.Transaction) {

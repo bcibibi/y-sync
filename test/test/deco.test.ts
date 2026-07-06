@@ -1,8 +1,8 @@
-import { beforeAll, test, afterAll, expect } from "@jest/globals";
+import { beforeAll, test, afterAll } from "@jest/globals";
 import { YSync } from "y-sync";
-import { YSyncClient } from "y-sync-client";
-import http from "http";
-import * as Y from "yjs";
+import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
+import { createYSyncClient } from "../utils/client.js";
+import { timeout } from "../utils/timeout.js";
 
 const PORT = 3000;
 
@@ -10,13 +10,7 @@ let ySync: YSync;
 
 const startServer = async () => {
 
-    const server = http.createServer((req, res) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "text/plain");
-        res.end("Hello world\n");
-    });
-
-    ySync = new YSync(server);
+    ySync = await createYSyncWebSocket(PORT);
 
     ySync.use((doc, action) => {
         if (action === 'create') {
@@ -28,26 +22,13 @@ const startServer = async () => {
         }
     });
 
-    await new Promise<void>((resolve, reject) => {
-        server.listen(PORT, (err?: Error) => {
-            if (err) {
-                reject(err);
-            } else {
-                console.log(`Server running at http://localhost:${PORT}/`);
-                resolve();
-            }
-        });
-    });
 }
 
 beforeAll(startServer, 10000);
 
 test("test", () => new Promise<void>(async (resolve, reject) => {
-    let doc: Y.Doc | undefined;
-    const client = new YSyncClient(`ws://localhost:${PORT}`);
-    client.on('error', (error) => {
-        console.error("Client encountered an error:", error);
-    });
+    const client = await createYSyncClient(PORT, {}, { reconnectInterval: 2000 });
+    
     client.on('reconnect', () => {
         console.log("Client reconnected to server");
         setTimeout(() => {
@@ -57,12 +38,11 @@ test("test", () => new Promise<void>(async (resolve, reject) => {
         }, 3000);
     });
 
-    console.log("Waiting for client to connect...");
-    await new Promise<void>((resolve) => client.on('connect', resolve));
-    doc = await client.getYDocument("test-doc");
+    console.log("Client connected to server, creating document and setting initial value");
+    const doc = await client.getYDocument("test-doc");
     doc.getMap("testMap").set("testKey", "testValue");
-    console.log("Client connected to server");
-    await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+
+    await timeout(2000);
 
     console.log("Closing server to simulate disconnection");
 
@@ -78,14 +58,5 @@ test("test", () => new Promise<void>(async (resolve, reject) => {
 }), 15000);
 
 afterAll(async () => {
-    console.log("Closing server and YSync instance");
-    return new Promise<void>((resolve, reject) => {
-        ySync.close(err => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
+    return closeYSyncWebSocket(ySync);
 }, 10000);

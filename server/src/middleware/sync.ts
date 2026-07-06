@@ -1,7 +1,7 @@
 import type { YSyncSocket } from "../websocket/socket.js";
-import type { YSyncWebSocketOptions } from "../websocket/websocket.js";
 import debug from 'debug';
-import type { YSyncCallbacks } from "../model/callback.js";
+import type { YSyncCallbacks } from "../types/callback.js";
+import type { YSyncWebSocketOptions } from "../types/options.js";
 
 const log = debug('y-sync:server:sync');
 

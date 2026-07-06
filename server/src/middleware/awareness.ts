@@ -1,20 +1,14 @@
 import { YSyncSocket } from "../websocket/socket.js";
-import * as awarenessProtocol from 'y-protocols/awareness';
+import { applyAwarenessUpdate, Awareness, encodeAwarenessUpdate, removeAwarenessStates } from 'y-protocols/awareness';
 import * as Y from 'yjs';
 import debug from 'debug';
-import type { YSyncAwarenessOptions } from "../model/options.js";
+import type { YSyncAwarenessOptions } from "../types/options.js";
+import type { YSyncAwarenessUpdate } from "../types/awareness.js";
 
 const log = debug('y-sync:server:awareness');
 
-interface AwarenessUpdate {
-    added: number[]
-    updated: number[]
-    removed: number[]
-}
-
-
 export class YSyncAwareness {
-    private _awareness: awarenessProtocol.Awareness;
+    private _awareness: Awareness;
     private sockets: Map<number, YSyncSocket> = new Map();
     private interval: NodeJS.Timeout;
 
@@ -23,7 +17,7 @@ export class YSyncAwareness {
     }
 
     constructor(options?: YSyncAwarenessOptions) {
-        this._awareness = options?.awareness ?? new awarenessProtocol.Awareness(new Y.Doc());
+        this._awareness = options?.awareness ?? new Awareness(new Y.Doc());
         this._awareness.setLocalState(null);
         this._awareness.on('update', this.handleAwarenessUpdate.bind(this));
         this.interval = setInterval(this.resyncAwareness.bind(this), options?.resyncInterval ?? 3000);
@@ -38,26 +32,23 @@ export class YSyncAwareness {
     }
 
     private resyncAwareness() {
-        this.sockets.values().forEach(socket => {
-            this.sendAwarenessUpdate(socket);
-        });
+        this.sockets.values().forEach(this.sendAwarenessUpdate.bind(this));
     }
 
     private sendAwarenessUpdate(socket: YSyncSocket) {
-        socket.send('syncAwareness', awarenessProtocol.encodeAwarenessUpdate(this._awareness, Array.from(this._awareness.getStates().keys())));
+        socket.send('syncAwareness', encodeAwarenessUpdate(this._awareness, Array.from(this._awareness.getStates().keys())));
     }
 
     private handleDisconnect(socket: YSyncSocket) {
         const clientId = this.sockets.entries().find(([id, s]) => s === socket)?.[0];
-        log(`Client disconnected: ${clientId}`);
         if (clientId !== undefined) {
-            awarenessProtocol.removeAwarenessStates(this._awareness, [clientId], socket);
+            log(`Client disconnected: ${clientId}`);
+            removeAwarenessStates(this._awareness, [clientId], socket);
             this._awareness.meta.delete(clientId);
-            log("Metadata after removal:", this._awareness.meta);
         }
     }
 
-    private handleAwarenessUpdate = ({ added, updated, removed }: AwarenessUpdate, origin: any) => {
+    private handleAwarenessUpdate = ({ added, updated, removed }: YSyncAwarenessUpdate, origin: any) => {
         log(`Awareness change: added=${added}, updated=${updated}, removed=${removed}, origin=${origin instanceof YSyncSocket ? origin.id : 'unknown'}`);
         if (origin instanceof YSyncSocket) {
             added.forEach(clientID => {
@@ -71,16 +62,16 @@ export class YSyncAwareness {
         }
         log(`Send to current awareness states: ${Array.from(this._awareness.states.keys()).join(', ')}`);
         const changedClients = added.concat(updated).concat(removed);
-        const update = awarenessProtocol.encodeAwarenessUpdate(this._awareness, changedClients);
+        const update = encodeAwarenessUpdate(this._awareness, changedClients);
         this.sockets.values().forEach(socket => socket.send('syncAwareness', update));
     };
 
     private handleAwarenessSync(socket: YSyncSocket) {
         return (update: Uint8Array) => {
             log(`Received awareness update from socket ${socket.id}, size: ${update.byteLength} bytes, applying to awareness ${this._awareness.clientID}`);
-            awarenessProtocol.applyAwarenessUpdate(this._awareness, update, socket);
-            log(`Current awareness states: ${Array.from(this._awareness.states.keys()).join(', ')}`);
-            log('Awareness metadata:', this._awareness.meta);
+            applyAwarenessUpdate(this._awareness, update, socket);
+            log(`Awareness states after updates: ${Array.from(this._awareness.states.keys()).join(', ')}`);
+            log('Awareness metadata after updates:', this._awareness.meta);
         }
     }
 

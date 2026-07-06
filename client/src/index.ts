@@ -4,13 +4,11 @@ import { YSyncDocument } from "./document/sync.js";
 import { YSyncClientWebSocket } from "./websocket/websocket.js";
 import * as Y from "yjs";
 import { YSyncAwareness } from "./awareness/sync.js";
-import type { YSyncClientWebSocketOptions } from "./model/options.js";
+import type { YSyncClientOptions } from "./types/options.js";
+import type { YSyncClientEvents } from "./types/client.js";
 
-interface YSyncClientEvents {
-    connect: [];
-    reconnect: [];
-    disconnect: [];
-    error: [error: Event];
+export type {
+    YSyncClientOptions,
 }
 
 export class YSyncClient extends EventEmitter<YSyncClientEvents> {
@@ -20,7 +18,7 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
     private syncDocument: YSyncDocument;
     private syncAwareness: YSyncAwareness;
 
-    constructor(private url: string, options?: YSyncClientWebSocketOptions) {
+    constructor(private url: string, options?: YSyncClientOptions) {
         super();
         this.provider = new YDocumentProvider();
         this.ws = new YSyncClientWebSocket(url, options ? options : {});
@@ -46,7 +44,7 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
         if (doc) {
             return doc;
         }
-        doc = await new Promise<Y.Doc>((resolve, reject) => {
+        doc = await new Promise<Y.Doc>((resolve) => {
             this.syncDocument.sync(new Y.Doc({ guid: id }), resolve);
         });
         return doc;

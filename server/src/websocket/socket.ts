@@ -4,13 +4,7 @@ import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
 import EventEmitter from 'events';
 import crypto from 'crypto';
-
-interface YSyncSocketEvents {
-    disconnect: [socket: YSyncSocket];
-    error: [error: Error];
-    [event: string]: any[];
-}
-
+import type { YSyncSocketEvents } from '../types/websocket.js';
 
 export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
 

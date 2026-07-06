@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import type { YSyncSocket } from '../websocket/socket.js';
 import EventEmitter from 'events';
-import type { YSyncCallbacks } from '../model/callback.js';
+import type { YSyncCallbacks } from '../types/callback.js';
 
 interface YDocProviderEvents {
     create: [doc: Y.Doc, socket: YSyncSocket];

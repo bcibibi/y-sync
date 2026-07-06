@@ -1,17 +1,21 @@
 import http from 'http';
-import { YSyncWebSocket, type YSyncWebSocketOptions } from './websocket/websocket.js';
+import { YSyncWebSocket } from './websocket/websocket.js';
 import { sync } from './middleware/sync.js';
 import { YSyncAwareness } from './middleware/awareness.js';
 import type { YDocProvider } from './provider/YDocProvider.js';
 import { MemoryYDocProvider } from './provider/MemoryYDocProvider.js';
 import * as Y from 'yjs';
 import type { YSyncSocket } from './websocket/socket.js';
-import type { YSyncOptions } from './model/options.js';
+import type { YSyncOptions, YSyncWebSocketOptions, YSyncAwarenessOptions } from './types/options.js';
+import type { YSyncMiddleware, YSyncAction } from './types/middleware.js';
 
-
-export type YSyncAction = 'create' | 'update';
-
-export type YSyncMiddleware = (doc: Y.Doc, action: YSyncAction) => void;
+export type {
+    YSyncMiddleware,
+    YSyncAction,
+    YSyncOptions,
+    YSyncWebSocketOptions,
+    YSyncAwarenessOptions,
+}
 
 export class YSync {
     private provider: YDocProvider;
@@ -28,7 +32,7 @@ export class YSync {
         this.ws.use(this.awareness.middleware.bind(this.awareness));
     }
 
-    use(cb: (doc: Y.Doc, action: YSyncAction) => void) {
+    use(cb: YSyncMiddleware) {
         this.middleware.push(cb);
     }
 

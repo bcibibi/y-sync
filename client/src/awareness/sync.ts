@@ -1,24 +1,20 @@
-import * as awarenessProtocol from 'y-protocols/awareness';
+import { applyAwarenessUpdate, Awareness, encodeAwarenessUpdate } from 'y-protocols/awareness';
 import * as Y from 'yjs';
 import type { YSyncClientWebSocket } from '../websocket/websocket.js';
 import debug from 'debug';
+import type { AwarenessUpdate } from '../types/awareness.js';
 
 const log = debug('y-sync:client:awareness');
-interface AwarenessUpdate {
-    added: number[]
-    updated: number[]
-    removed: number[]
-}
 
 export class YSyncAwareness {
-    private _awareness: awarenessProtocol.Awareness;
+    private _awareness: Awareness;
 
     get awareness() {
         return this._awareness;
     }
 
     constructor(private ws: YSyncClientWebSocket) {
-        this._awareness = new awarenessProtocol.Awareness(new Y.Doc());
+        this._awareness = new Awareness(new Y.Doc());
         this._awareness.setLocalState({});
         this._awareness.on('update', this.handleUpdate.bind(this));
         ws.on('connect', this.handleConnect.bind(this));
@@ -33,13 +29,13 @@ export class YSyncAwareness {
         }
     }
 
-    private getUpdate(clients: number[], state?: Map<number, any>) {
-        return awarenessProtocol.encodeAwarenessUpdate(this._awareness, clients, state)
+    private getUpdate(clients: number[]) {
+        return encodeAwarenessUpdate(this._awareness, clients)
     }
 
-    private sendUpdate(clients: number[], state?: Map<number, any>) {
-        log(`Sending awareness update for clients: ${clients}, state: ${state}`);
-        const update = this.getUpdate(clients, state);
+    private sendUpdate(clients: number[]) {
+        log(`Sending awareness update for clients: ${clients}`);
+        const update = this.getUpdate(clients);
         this.ws.send('syncAwareness', update);
     }
 
@@ -51,6 +47,6 @@ export class YSyncAwareness {
 
     private handleSyncAwareness(update: Uint8Array) {
         log(`Received awareness update from server`);
-        awarenessProtocol.applyAwarenessUpdate(this._awareness, update, this);
+        applyAwarenessUpdate(this._awareness, update, this);
     }
 }

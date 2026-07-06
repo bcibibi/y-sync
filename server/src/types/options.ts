@@ -6,6 +6,10 @@ export interface YSyncOptions {
     awareness?: YSyncAwarenessOptions;
 }
 
+export interface YSyncWebSocketOptions {
+    provider: YDocProvider;
+}
+
 export interface YSyncAwarenessOptions {
     awareness?: awarenessProtocol.Awareness;
     resyncInterval?: number;

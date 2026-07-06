@@ -3,18 +3,10 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { YSyncSocket } from './socket.js';
 import EventEmitter from 'events';
 import debug from 'debug';
-import type { YDocProvider } from '../provider/YDocProvider.js';
+import type { YSyncWebSocketEvents } from '../types/websocket.js';
+import type { YSyncWebSocketOptions } from '../types/options.js';
 
 const log = debug('y-sync:server:ws');
-
-type YSyncWebSocketEvents = {
-    connection: [socket: YSyncSocket];
-};
-
-
-export interface YSyncWebSocketOptions {
-    provider: YDocProvider;
-}
 
 export class YSyncWebSocket extends EventEmitter<YSyncWebSocketEvents> {
 
@@ -30,13 +22,10 @@ export class YSyncWebSocket extends EventEmitter<YSyncWebSocketEvents> {
 
     private handleUpgradeCallback(ws: WebSocket, request: http.IncomingMessage) {
         try {
-            const socket = new YSyncSocket(ws, request);
             log("New YSyncSocket connection established");
+            const socket = new YSyncSocket(ws, request);
             socket.on('disconnect', this.handleSocketDisconnect.bind(this));
             this.emit('connection', socket);
-            ws.on('close', () => {
-                log("YSyncWebSocket connection closed");
-            });
         } catch (error) {
             console.error("Failed to create YSyncSocket:", error);
             ws.close();
@@ -46,6 +35,7 @@ export class YSyncWebSocket extends EventEmitter<YSyncWebSocketEvents> {
     private handleSocketDisconnect(socket: YSyncSocket) {
         log("YSyncSocket disconnected");
         this.options.provider.disconnect(socket);
+        this.emit('disconnect');
     }
 
     use(cb: (socket: YSyncSocket, options: YSyncWebSocketOptions) => void) {
