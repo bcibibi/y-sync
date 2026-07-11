@@ -2,7 +2,6 @@ import type { YSyncSocket } from "../websocket/socket.js";
 import { YDocProvider } from "./YDocProvider.js";
 import * as Y from 'yjs';
 import debug from 'debug';
-import type { YSyncCallbacks } from "../types/callback.js";
 import type { MemoryYDocEntry } from "../types/memoryprovider.js";
 
 const log = debug('y-sync:server:memory-provider');
@@ -15,7 +14,7 @@ export class MemoryYDocProvider extends YDocProvider {
         this.docs = new Map<string, MemoryYDocEntry>();
     }
 
-    private getYDocument(id: string, socket: YSyncSocket, { onCreate, onUpdate }: YSyncCallbacks): Y.Doc {
+    private async getYDocument(id: string, socket: YSyncSocket): Promise<Y.Doc> {
         const entry = this.docs.get(id);
 
         if (entry) {
@@ -24,15 +23,14 @@ export class MemoryYDocProvider extends YDocProvider {
                 log(`Added socket to existing document ${id}`);
             }
             return entry.doc;
-        } 
+        }
 
-        return this.newYDocument(id, socket, { onCreate, onUpdate });
+        return this.newYDocument(id, socket);
     }
 
-    private newYDocument(id: string, socket: YSyncSocket, { onCreate, onUpdate }: YSyncCallbacks): Y.Doc {
+    private async newYDocument(id: string, socket: YSyncSocket): Promise<Y.Doc> {
         const doc = new Y.Doc({ guid: id });
-        onCreate(doc);
-        doc.on('update', () => onUpdate(doc));
+        await this.emitCreate(doc);
         doc.on('update', this.handleDocUpdate.bind(this));
         this.docs.set(id, { doc, sockets: [socket] });
         log(`Created new document ${id}`);
@@ -41,7 +39,10 @@ export class MemoryYDocProvider extends YDocProvider {
 
     private handleDocUpdate(update: Uint8Array, transactionOrigin: any, doc: Y.Doc, transaction: Y.Transaction) {
         log(`Sending syncUpdate for document ${doc.guid}`);
-        this.emitUpdate(transactionOrigin, update, doc.guid);
+        const entry = this.docs.get(doc.guid);
+        let sockets = entry?.sockets || [];
+        sockets = sockets.filter(s => s !== transactionOrigin);
+        this.emit('update', doc, update, sockets, transactionOrigin);
     };
 
     applyUpdate(docid: string, update: Uint8Array, socket: YSyncSocket): void {
@@ -54,8 +55,8 @@ export class MemoryYDocProvider extends YDocProvider {
         }
     }
 
-    stateVector(docid: string, socket: YSyncSocket, callbacks: YSyncCallbacks): Uint8Array {
-        const doc = this.getYDocument(docid, socket, callbacks);
+    async stateVector(docid: string, socket: YSyncSocket): Promise<Uint8Array> {
+        const doc = await this.getYDocument(docid, socket);
         log(`Retrieving state vector for document ${docid}`);
         return Y.encodeStateVector(doc);
     }

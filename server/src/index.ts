@@ -17,13 +17,16 @@ export type {
     YSyncAwarenessOptions,
 }
 
+export { MemoryYDocProvider } from './provider/MemoryYDocProvider.js';
+export { RedisYDocProvider } from './provider/RedisYDocProvider.js';
+
 export class YSync {
     private provider: YDocProvider;
     private ws: YSyncWebSocket;
     private awareness: YSyncAwareness;
     private middleware: YSyncMiddleware[] = [];
 
-    constructor(private server: http.Server, private options?: YSyncOptions) { 
+    constructor(private server: http.Server, private options?: YSyncOptions) {
         this.provider = options?.provider ?? new MemoryYDocProvider();
         this.ws = new YSyncWebSocket(server, { provider: this.provider });
         this.awareness = new YSyncAwareness(options?.awareness);
@@ -41,11 +44,17 @@ export class YSync {
     }
 
     private handleCreate(doc: Y.Doc) {
-        this.middleware.forEach((cb) => cb(doc, 'create'));
+        Y.transact(doc, () => {
+            this.middleware.forEach((cb) => cb(doc, 'create'));
+        }, 'middleware');
     }
 
-    private handleUpdate(doc: Y.Doc) {
-        this.middleware.forEach((cb) => cb(doc, 'update'));
+    private handleUpdate(doc: Y.Doc, origin: any) {
+        if (origin !== 'middleware') {
+            Y.transact(doc, () => {
+                this.middleware.forEach((cb) => cb(doc, 'update', origin));
+            }, 'middleware');
+        }
     }
 
     close(cb?: (err?: Error) => void) {
