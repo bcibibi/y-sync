@@ -6,10 +6,17 @@ import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
 import { createYSyncClient } from "../utils/client.js";
 import { timeout } from "../utils/timeout.js";
 import {Redis} from "ioredis";
+import { YSyncRedis } from "y-sync-redis";
+import { createRedisClient } from "../utils/redis.js";
 
 const PORT = 3000;
 let ySync: YSync;
+let clientRedis: YSyncRedis;
+let client1: YSyncClient;
+let client2: YSyncClient;
 beforeAll(async () => {
+    clientRedis = await createRedisClient('client');
+
     const pub = new Redis("redis://redis:6379");
     
     const keys = await pub.keys("yjs:*");
@@ -38,11 +45,21 @@ beforeAll(async () => {
         }
     });
 
+    clientRedis.use((doc, action, update, origin) => {
+        if (action === 'create') {
+            console.log(`clientRedis : Document created with id: ${doc.guid}`);
+        } else if (action === 'update') {
+            console.log(`clientRedis : Document updated with id: ${doc.guid}`);
+            console.log(`clientRedis : Document content:`, doc.getMap("testMap").toJSON());
+            //doc.getMap("testMap").set("lastUpdate", new Date().toISOString());
+        }
+    });
+
 }, 10000);
 
 
 test("test", async () => new Promise<void>(async (resolve, reject) => {
-    const client1 = await createYSyncClient(PORT, { onError: reject, onDisconnect: resolve });
+    client1 = await createYSyncClient(PORT, { onError: reject, onDisconnect: resolve });
 
     const doc = await client1.getYDocument("test-doc");
     await timeout(2000);
@@ -57,10 +74,11 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
     await timeout(2000);
 
     console.log("Last update:", doc.getMap("testMap").get('lastUpdate'));
+    expect(doc.getMap("testMap").get("lastUpdate")).toBeDefined();
 
     await timeout(4000);
 
-    const client2 = await createYSyncClient(PORT, { onError: reject, onDisconnect: resolve });
+    client2 = await createYSyncClient(PORT, { onError: reject, onDisconnect: resolve });
     const doc2 = await client2.getYDocument("test-doc");
 
     expect(doc2.getMap("testMap").get("testKey")).toBe("newValue");
@@ -76,5 +94,7 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
 }), 15000);
 
 afterAll(async () => {
+    client1.close();
+    // client2.close();
     return closeYSyncWebSocket(ySync);
 }, 10000);

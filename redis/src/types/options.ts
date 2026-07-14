@@ -1,8 +1,7 @@
-import type Redis from "ioredis";
+import type { Redis } from "ioredis";
 
 export interface YSyncRedisOptions {
     pub: Redis;
     sub: Redis;
-    memoryTTL?: number; // in seconds
-    redisTTL?: number; // in seconds
+    ttl?: number; // Time to live for documents in Redis (in seconds)
 }

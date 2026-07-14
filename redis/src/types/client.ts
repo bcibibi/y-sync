@@ -1,5 +1,6 @@
 
 
 export interface YSyncRedisClientEvents {
-    [event: string]: any[];
+    error: [err: any];
+    subscribed: [];
 }

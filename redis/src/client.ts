@@ -4,19 +4,36 @@ import debug from "debug";
 import * as encoding from "lib0/encoding";
 import * as decoding from "lib0/decoding";
 import * as Y from "yjs";
-import type { YSyncRedisClientEvents } from "./types/client";
+import type { YSyncRedisClientEvents } from "./types/client.js";
+import crypto from "crypto";
+import { Redlock } from "@sesamecare-oss/redlock";
 
 const log = debug("y-sync:redis:client");
 
 export class YSyncRedisClient extends EventEmitter<YSyncRedisClientEvents> {
 
+    private _id: string;
+    private redlock: Redlock;
+
+    get id(): string {
+        return this._id;
+    }
+
     constructor(private pub: Redis, private sub: Redis) {
         super();
+        this._id = crypto.randomBytes(16).toString("hex");
+        this.redlock = new Redlock([this.pub], {
+            retryCount: 10,
+            retryDelay: 200,
+            retryJitter: 200
+        });
         this.sub.psubscribe('yjs', (err, count) => {
             if (err) {
                 console.error('Failed to subscribe to Redis keyspace notifications:', err);
+                this.emit('error', err);
             } else {
                 log(`Subscribed to ${count} Redis keyspace notifications.`);
+                this.emit('subscribed');
             }
         });
         this.sub.on('pmessageBuffer', this.handleMessage.bind(this));
@@ -46,18 +63,13 @@ export class YSyncRedisClient extends EventEmitter<YSyncRedisClientEvents> {
         this.pub.publish('yjs', Buffer.from(message));
     }
 
-    save(doc: Y.Doc) {
-        return this.pub.set(`yjs:${doc.guid}`, Buffer.from(Y.encodeStateAsUpdate(doc)), "EX", 3600);
-    }
-
-    async read(docId: string): Promise<Y.Doc | null> {
-        const data = await this.pub.getBuffer(`yjs:${docId}`);
-        if (data) {
-            const doc = new Y.Doc({ guid: docId });
-            Y.applyUpdate(doc, new Uint8Array(data));
-            return doc;
+    async lock<T>(docid: string, action: () => Promise<T>): Promise<T> {
+        const lock = await this.redlock.acquire([`y-sync:${docid}:lock`], 1000);
+        try {
+            return await action();
+        } finally {
+            await lock.release();
         }
-        return null;
     }
 
 }

@@ -1,76 +1,58 @@
+import type { YSyncRedisDoc } from "./types/docs.js";
 import * as Y from "yjs";
-import type { YSyncRedisClient } from "./client";
-import EventEmitter from "events";
 
-export class YSyncRedisDocs extends EventEmitter {
-    private items: Map<string, Y.Doc> = new Map();
+export class YSyncRedisDocs {
 
-    constructor(private client: YSyncRedisClient) {
-        super();
-        client.on('syncStep1', this.handleSyncStep1.bind(this));
-        client.on('syncStep2', this.handleSyncStep2.bind(this));
-        client.on('syncUpdate', this.handleSyncUpdate.bind(this));
+    private docs: Map<string, YSyncRedisDoc> = new Map();
+
+    constructor(private ttl: number, private onCreate?: (doc: Y.Doc, origin?: any) => void | Promise<void>) { }
+
+    async get<T extends boolean = false>(docId: string, create: T = false as T, origin?: any): Promise<T extends true ? Y.Doc : Y.Doc | null> {
+        let value = this.docs.get(docId);
+        if (!value) {
+            if (!create) {
+                return null as T extends true ? Y.Doc : Y.Doc | null;
+            }
+            value = await this.createDocument(docId, origin);
+        } else {
+            this.refreshTimer(docId);
+        }
+        return value.doc;
     }
 
-    private createDocument(docId: string): Y.Doc {
-        const doc = new Y.Doc();
-        this.emitSyncStep1(doc);
-        doc.on('update', this.handleDocumentUpdate.bind(this));
-        doc.on('destroy', this.handleRemoveDocument.bind(this));
-        this.items.set(docId, doc);
-        return doc;
+    private async createDocument(docId: string, origin?: any) {
+        const doc = new Y.Doc({ guid: docId });
+        if (this.onCreate) {
+            await this.onCreate(doc, origin);
+        }
+        const timer = this.getTimeout(docId);
+        const item: YSyncRedisDoc = { doc, timer };
+        this.docs.set(docId, item);
+        return item;
     }
 
-    private handleRemoveDocument(doc: Y.Doc) {
-        this.items.delete(doc.guid);
+
+    private getTimeout(docId: string): NodeJS.Timeout {
+        return setTimeout(() => {
+            this.removeDocument(docId);
+        }, this.ttl * 1000);
     }
 
-    private handleDocumentUpdate(update: Uint8Array, origin: any, doc: Y.Doc, transaction: Y.Transaction) {
-        if (origin !== this.client) {
-            this.emitSyncUpdate(doc, update);
+    private removeDocument(docId: string) {
+        const item = this.docs.get(docId);
+        if (item) {
+            clearTimeout(item.timer);
+            item.doc.destroy();
+            this.docs.delete(docId);
         }
     }
 
-    private handleSyncStep1(docId: string, update: Uint8Array) {
-        let doc: Y.Doc = this.items.get(docId) || this.createDocument(docId);
-        this.emitSyncStep2(doc, update);
-    }
-
-    private handleSyncStep2(docId: string, update: Uint8Array) {
-        let doc = this.items.get(docId);
-        if (!doc) {
-            return; // Document not found, ignore the update
+    private refreshTimer(docId: string) {
+        const item = this.docs.get(docId);
+        if (item) {
+            clearTimeout(item.timer);
+            item.timer = this.getTimeout(docId);
         }
-        Y.applyUpdate(doc, update, this.client);
-        this.emit('synced:' + doc.guid, doc);
     }
 
-    private handleSyncUpdate(docId: string, update: Uint8Array) {
-        let doc = this.items.get(docId);
-        if (!doc) {
-            return; // Document not found, ignore the update
-        }
-        Y.applyUpdate(doc, update, this.client);
-    }
-
-    private emitSyncStep1(doc: Y.Doc) {
-        this.client.send('syncStep1', doc.guid, Y.encodeStateVector(doc));
-    }
-
-    private emitSyncStep2(doc: Y.Doc, update: Uint8Array) {
-        this.client.send('syncStep2', doc.guid, Y.encodeStateAsUpdate(doc, update));
-    }
-
-    private emitSyncUpdate(doc: Y.Doc, update: Uint8Array) {
-        this.client.send('syncUpdate', doc.guid, update);
-    }
-
-    async getDocument(docId: string): Promise<Y.Doc> {
-        let doc = this.items.get(docId);
-        if (!doc) {
-            doc = this.createDocument(docId);
-            await new Promise<void>((resolve) => this.once('synced:' + docId, () => resolve()));
-        }
-        return doc;
-    }
 }
