@@ -1,6 +1,5 @@
 import * as Y from "yjs";
 import type { YSyncRedisClient } from "./client.js";
-import EventEmitter from "events";
 import type { YSyncRedisMiddleware } from "./middleware.js";
 import debug from "debug";
 import { YSyncRedisDocs } from "./docs.js";

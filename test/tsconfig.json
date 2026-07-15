@@ -1,3 +1,9 @@
 {
+  "compilerOptions": {
+    "typeRoots": [
+      "y-utils/types",
+      "../node_modules/@types"
+    ],
+  },
   "extends": "../tsconfig.esm.json"
 }
