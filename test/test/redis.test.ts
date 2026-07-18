@@ -15,7 +15,7 @@ let clientRedis: YSyncRedis;
 let client1: YSyncClient;
 let client2: YSyncClient;
 beforeAll(async () => {
-    clientRedis = await createRedisClient('client');
+    clientRedis = await createRedisClient();
 
     const pub = new Redis("redis://redis:6379");
     
@@ -35,6 +35,7 @@ beforeAll(async () => {
     });
 
     ySync.use((doc, action, origin) => {
+        console.log(`Action: ${action}, Origin:`, origin?.constructor?.name ? origin.constructor.name : origin);
         if (action === 'create') {
             console.log(`Document created with id: ${doc.guid}`);
             doc.getMap("testMap").set("testKey", "testValue");
@@ -76,11 +77,14 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
     console.log("Last update:", doc.getMap("testMap").get('lastUpdate'));
     expect(doc.getMap("testMap").get("lastUpdate")).toBeDefined();
 
-    await timeout(4000);
-
+    console.log("Create client2 and retrieving document...");
     client2 = await createYSyncClient(PORT, { onError: reject, onDisconnect: resolve });
+
+    console.log("Client2 connected and retrieving document...");
     const doc2 = await client2.getYDocument("test-doc");
 
+    console.log("Document retrieved by client2:", doc2.guid);
+    console.log("Document content by client2:", doc2.getMap("testMap").toJSON());
     expect(doc2.getMap("testMap").get("testKey")).toBe("newValue");
 
     doc2.getMap("testMap").set("testKey", "finalValue");
@@ -89,9 +93,16 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
 
     expect(doc.getMap("testMap").get("testKey")).toBe("finalValue");
 
+    doc.destroy();
+    await timeout(2000);
+
+    const doc3 = await client1.getYDocument("test-doc");
+
+    expect(doc3.getMap("testMap").get("testKey")).toBe("finalValue");
+
     client1.close();
     client2.close();
-}), 15000);
+}), 20000);
 
 afterAll(async () => {
     client1.close();

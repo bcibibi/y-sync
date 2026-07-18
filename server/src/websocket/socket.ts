@@ -5,6 +5,9 @@ import * as encoding from "lib0/encoding";
 import EventEmitter from 'events';
 import crypto from 'crypto';
 import type { YSyncSocketEvents } from '../types/websocket.js';
+import debug from 'debug';
+
+const log = debug('y-sync:server:socket');
 
 export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
 
@@ -16,7 +19,7 @@ export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
 
     constructor(private ws: WebSocket, private request: http.IncomingMessage) { 
         super();
-        this._id = crypto.randomUUID();
+        this._id = request.url ? new URL(request.url, `http://${request.headers.host}`).searchParams.get('id') ?? crypto.randomUUID() : crypto.randomUUID();
         ws.on('message', this.handleMessage.bind(this));
         ws.on('error', this.handleError.bind(this));
         ws.on('close', this.handleClose.bind(this));
@@ -30,15 +33,17 @@ export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
     }
 
     private handleClose() {
+        log(`WebSocket closed for socket ${this.id}`);
         this.emit('disconnect', this);
+        this.removeAllListeners();
     }
 
     private handlePing() {
-        console.log("WebSocket ping received");
+        log("WebSocket ping received");
     }
 
     private handlePong() {
-        console.log("WebSocket pong received");
+        log("WebSocket pong received");
     }
 
     private handleUnexpectedResponse(request: http.IncomingMessage, response: http.ServerResponse) {

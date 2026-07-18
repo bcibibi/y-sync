@@ -40,7 +40,7 @@ export class YSync {
     }
 
     private handleSync(socket: YSyncSocket, options: YSyncWebSocketOptions) {
-        sync(socket, options, { onCreate: this.handleCreate.bind(this), onUpdate: this.handleUpdate.bind(this) });
+        sync(socket, options, { onCreate: this.handleCreate.bind(this), onUpdate: this.handleUpdate.bind(this), onDestroy: this.handleDestroy.bind(this) });
     }
 
     private handleCreate(doc: Y.Doc) {
@@ -55,6 +55,10 @@ export class YSync {
                 this.middleware.forEach((cb) => cb(doc, 'update', origin));
             }, 'middleware');
         }
+    }
+
+    private handleDestroy(doc: Y.Doc) {
+        this.middleware.forEach((cb) => cb(doc, 'delete'));
     }
 
     close(cb?: (err?: Error) => void) {

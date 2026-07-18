@@ -8,5 +8,5 @@ export interface YSyncSocketEvents {
 
 export type YSyncWebSocketEvents = {
     connection: [socket: YSyncSocket];
-    disconnect: [];
+    disconnect: [socket: YSyncSocket];
 };

@@ -17,6 +17,7 @@ export async function createYSyncClient(port: number, {
         console.error("Client encountered an error:", error);
         onError?.(error);
     });
+    console.log("Connecting client to server...");
     await new Promise<void>((resolve) => client.once('connect', resolve));
     return client;
 }

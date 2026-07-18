@@ -34,8 +34,7 @@ export class YSyncWebSocket extends EventEmitter<YSyncWebSocketEvents> {
 
     private handleSocketDisconnect(socket: YSyncSocket) {
         log("YSyncSocket disconnected");
-        this.options.provider.disconnect(socket);
-        this.emit('disconnect');
+        this.emit('disconnect', socket);
     }
 
     use(cb: (socket: YSyncSocket, options: YSyncWebSocketOptions) => void) {

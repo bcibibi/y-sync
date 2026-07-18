@@ -23,6 +23,16 @@ export class YSyncRedisSync {
         }
         this.emitSyncStep1(doc);
         doc.on('update', this.handleDocumentUpdate.bind(this));
+        doc.on('destroy', this.handleDocumentDestroy.bind(this));
+    }
+
+    private async handleDocumentDestroy(doc: Y.Doc) {
+        try {
+            log(`Document with id: ${doc.guid} is being destroyed`);
+            await this.middleware.delete(doc);
+        } catch (err) {
+            console.error(`Error handling document destroy for document ${doc.guid}:`, err);
+        }
     }
 
     private async handleDocumentUpdate(update: Uint8Array, origin: any, doc: Y.Doc, transaction: Y.Transaction) {

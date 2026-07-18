@@ -44,8 +44,8 @@ export class YSyncRedis extends EventEmitter<YSyncRedisEvents> {
         this.emit('connected');
     }
 
-    use(cb: YSyncRedisMiddlewareFct) {
-        this.middleware.use(cb);
+    use(cb: YSyncRedisMiddlewareFct, origin?: any) {
+        this.middleware.use(cb, origin);
     }
 
     async getDocument(docId: string): Promise<Y.Doc> {

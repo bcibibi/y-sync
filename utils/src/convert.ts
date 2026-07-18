@@ -6,7 +6,6 @@ const log = debug('y-utils:convert');
 export namespace YConverter {
 
     function convertString(value: string, root?: Y.Text): Y.Text {
-        log('Converting string value:', value);
         const text = root || new Y.Text();
         text.setText(value);
         return text;
@@ -45,30 +44,30 @@ export namespace YConverter {
         return text;
     }
 
-    function convertArray<D>(value: D[], root?: Y.Array<Y.MapValue<D>>): Y.Array<Y.MapValue<D>> {
-        const yArray = root || new Y.Array<Y.MapValue<D>>();
-        value.forEach(item => {
-            yArray.push([toYjs(item)]);
-        });
+    function convertArray<D>(value: D[], root?: Y.Array<D>): Y.Array<D> {
+        const yArray = root || new Y.Array<D>();
+        yArray.replace(value);
         return yArray;
     }
 
 
-    function convertObject<D extends Record<string, any>>(value: D, root?: Y.Map<Y.MapObject<D>>): Y.Map<Y.MapObject<D>> {
-        const yMap = root || new Y.Map<Y.MapObject<D>>();
+    function convertObject<D extends Record<string, any>>(value: D, root?: Y.Map<D>): Y.Map<D> {
+        const yMap = root || new Y.Map<D>();
         for (const key in value) {
-            yMap.set(key, toYjs(value[key]));
+            yMap.set(key, value[key]);
         }
         return yMap;
     }
 
     export function toYjs<D>(value: D, root?: Y.MapValue<D>): Y.MapValue<D> {
-        log('Converting value to Yjs type:', value);
-        log('Root type:', root ? root.constructor.name : 'undefined');
+
         if (value instanceof Y.AbstractType) {
             log('Returning Y.AbstractType value');
             return value as Y.MapValue<D>;
         }
+
+        log('Converting value to Yjs type:', value);
+        log('Root type:', root ? root.constructor.name : 'undefined');
 
         if (typeof value === 'string') {
             log('Returning text value');
@@ -102,7 +101,7 @@ export namespace YConverter {
 
         if (typeof value === 'object' && value !== null) {
             log('Converting object to Y.Map');
-            return convertObject(value, root as Y.Map<Y.MapObject<D & object>>) as Y.MapValue<D>;
+            return convertObject(value, root as Y.Map<any>) as Y.MapValue<D>;
         }
 
         return new Y.Text(String(value)) as Y.MapValue<D>;

@@ -31,10 +31,17 @@ export class MemoryYDocProvider extends YDocProvider {
     private async newYDocument(id: string, socket: YSyncSocket): Promise<Y.Doc> {
         const doc = new Y.Doc({ guid: id });
         await this.emitCreate(doc);
-        doc.on('update', this.handleDocUpdate.bind(this));
         this.docs.set(id, { doc, sockets: [socket] });
+        doc.on('update', this.handleDocUpdate.bind(this));
+        doc.on('destroy', this.handleDocDestroy.bind(this));
         log(`Created new document ${id}`);
         return doc;
+    }
+
+    private handleDocDestroy(doc: Y.Doc) {
+        log(`Document destroyed: ${doc.guid}`);
+        this.emit('delete', doc);
+        this.docs.delete(doc.guid);
     }
 
     private handleDocUpdate(update: Uint8Array, transactionOrigin: any, doc: Y.Doc, transaction: Y.Transaction) {
@@ -80,9 +87,23 @@ export class MemoryYDocProvider extends YDocProvider {
                 entry.sockets.splice(index, 1);
                 if (entry.sockets.length === 0) {
                     log(`No more sockets for document ${id}, deleting document`);
+                    entry.doc.destroy();
                     this.docs.delete(id);
                 }
             }
+        }
+    }
+
+    remove(docid: string, socket: YSyncSocket): void {
+        const entry = this.docs.get(docid);
+        if (entry) {
+            log(`Removing document ${docid}`);
+            entry.sockets = entry.sockets.filter(s => s !== socket);
+            if (entry.sockets.length === 0) {
+                entry.doc.destroy();
+            }
+        } else {
+            console.error(`Document ${docid} not found for removal`);
         }
     }
 }

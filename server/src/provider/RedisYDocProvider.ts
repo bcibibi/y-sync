@@ -23,11 +23,26 @@ export class RedisYDocProvider extends YDocProvider {
             log('RedisYDocProvider connected to Redis.');
             this.connected = true;
         });
-        this.client.use(this.middleware.bind(this));
+        this.client.use(this.middleware.bind(this), 'middleware');
     }
 
     disconnect(socket: YSyncSocket): void {
         this.removeSocket(socket);
+    }
+
+    remove(docid: string, socket: YSyncSocket): void {
+        const sockets = this.sockets.get(docid);
+        if (sockets) {
+            const index = sockets.indexOf(socket);
+            if (index !== -1) {
+                sockets.splice(index, 1);
+                log(`Removed socket from document ${docid}`);
+            }
+            if (sockets.length === 0) {
+                this.sockets.delete(docid);
+                log(`No more sockets for document ${docid}, removed from tracking`);
+            }
+        }
     }
 
     async applyUpdate(docid: string, update: Uint8Array, socket: YSyncSocket): Promise<void> {
@@ -68,6 +83,9 @@ export class RedisYDocProvider extends YDocProvider {
     private async middleware(doc: Y.Doc, action: YSyncRedisMiddlewareAction, update?: Uint8Array, origin?: any) {
         if (action === "create") {
             await this.emitCreate(doc);
+        } else if (action === "delete") {
+            log(`Emitting delete for document ${doc.guid}`);
+            this.emit('delete', doc);
         } else if (action === "update" && update) {
             log(`Emitting update for document ${doc.guid}`);
             log(`Origin of update: ${origin ? origin.constructor?.name : 'unknown'}`);

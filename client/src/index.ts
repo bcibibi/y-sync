@@ -1,4 +1,4 @@
-import EventEmitter from "events";
+import { EventEmitter } from "eventemitter3";
 import { YDocumentProvider } from "./document/provider.js";
 import { YSyncDocument } from "./document/sync.js";
 import { YSyncClientWebSocket } from "./websocket/websocket.js";
@@ -18,6 +18,10 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
     private syncDocument: YSyncDocument;
     private syncAwareness: YSyncAwareness;
 
+    get id() {
+        return this.ws.id;
+    }
+
     constructor(private url: string, options?: YSyncClientOptions) {
         super();
         this.provider = new YDocumentProvider();
@@ -31,7 +35,7 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
         this.ws.on('reconnect', () => {
             this.emit('reconnect');
         });
-        this.ws.on('error', (error) => {
+        this.ws.on('error', (error: unknown) => {
             this.emit('error', error);
         });
         this.syncDocument = new YSyncDocument(this.ws, this.provider);
@@ -56,5 +60,6 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
 
     close() {
         this.ws.disconnect();
+        this.ws.removeAllListeners();
     }
 }

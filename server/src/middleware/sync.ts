@@ -6,7 +6,7 @@ import * as Y from 'yjs';
 
 const log = debug('y-sync:server:sync');
 
-export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, { onCreate, onUpdate }: YSyncCallbacks) {
+export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, { onCreate, onUpdate, onDestroy }: YSyncCallbacks) {
 
     const handleSyncStep1 = async (docId: string, update: Uint8Array) => {
         try {
@@ -38,8 +38,17 @@ export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, {
         }
     };
 
+    const handleSyncDestroy = async (docId: string) => {
+        try {
+            log(`Received syncDestroy for document ${docId}`);
+            await provider.remove(docId, socket);
+        } catch (error) {
+            console.error(`Error handling syncDestroy for document ${docId}:`, error);
+        }
+    };
+
     const handleDocUpdate = (doc: Y.Doc, update: Uint8Array, sockets: YSyncSocket[], origin: any) => {
-        log(`Emitting syncUpdate for document ${doc.guid}`);
+        log(`Emitting syncUpdate for document ${doc.guid}, nomber of sockets: ${sockets.length}`);
         sockets.forEach(s => {
             s.send('syncUpdate', doc.guid, update);
         });
@@ -58,10 +67,29 @@ export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, {
         }
     }
 
+    const handleDocDestroy = async (doc: Y.Doc) => {
+        log(`Document destroyed with id: ${doc.guid}`);
+        try {
+            await onDestroy(doc);
+        } catch (error) {
+            console.error(`Error handling document destroy for document ${doc.guid}:`, error);
+        }
+    }
+
+    log(`Setting up event listeners for socket ${socket.id}`);
+    provider.on('delete', handleDocDestroy);
     provider.on('create', handleDocCreate);
     provider.on('update', handleDocUpdate);
     socket.on('syncStep1', handleSyncStep1);
     socket.on('syncStep2', handleSyncStep2);
     socket.on('syncUpdate', handleSyncUpdate);
+    socket.on('syncDestroy', handleSyncDestroy);
+    socket.on('disconnect', () => {
+        log(`Socket disconnected: ${socket.id}`);
+        provider.disconnect(socket);
+        provider.off('delete', handleDocDestroy);
+        provider.off('create', handleDocCreate);
+        provider.off('update', handleDocUpdate);
+    });
 
 }

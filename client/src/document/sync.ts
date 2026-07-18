@@ -1,4 +1,4 @@
-import EventEmitter from "events";
+import { EventEmitter } from "eventemitter3";
 import type { YSyncClientWebSocket } from "../websocket/websocket.js";
 import * as Y from "yjs";
 import type { YDocumentProvider } from "./provider.js";
@@ -18,6 +18,7 @@ export class YSyncDocument extends EventEmitter {
 
     sync(doc: Y.Doc, cb?: (doc: Y.Doc) => void) {
         this.provider.addYDocument(doc);
+        doc.on('destroy', this.handleDocDestroy.bind(this));
         this.once('synced:' + doc.guid, (doc: Y.Doc) => {
             log('Document synced:', doc.guid);
             doc.on('update', this.handleDocUpdate.bind(this));
@@ -67,6 +68,12 @@ export class YSyncDocument extends EventEmitter {
             return;
         }
         this.ws.send('syncUpdate', doc.guid, update);
+    }
+
+    private handleDocDestroy(doc: Y.Doc) {
+        log('Document destroyed:', doc.guid);
+        this.provider.removeYDocument(doc.guid);
+        this.ws.send('syncDestroy', doc.guid);
     }
 
     private handleReconnect() {

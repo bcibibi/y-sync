@@ -25,6 +25,7 @@
   "exports": {
     ".": {
       "types": "./dist/esm/index.d.ts",
+      "browser": "./dist/esm/index.js",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js",
       "default": "./dist/esm/index.js"
@@ -45,8 +46,8 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.13",
+    "@types/events": "^3.0.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.9.1",
     "jest": "^30.4.2",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3"
@@ -56,6 +57,7 @@
   },
   "dependencies": {
     "debug": "^4.4.3",
+    "eventemitter3": "^5.0.1",
     "lib0": "^0.2.117",
     "y-protocols": "^1.0.7"
   }

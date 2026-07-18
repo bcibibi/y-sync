@@ -13,7 +13,8 @@ beforeAll(async () => {
 
     ySync = await createYSyncWebSocket(PORT);
 
-    ySync.use((doc, action) => {
+    ySync.use((doc, action, origin) => {
+        console.log(`Action: ${action}, Origin:`, origin);
         if (action === 'create') {
             console.log(`Document created with id: ${doc.guid}`);
             doc.getMap("testMap").set("testKey", "testValue");
@@ -41,8 +42,17 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
 
     await timeout(2000);
 
+    console.log("Destroy document:", doc.guid);
+    doc.destroy();
+
+    await timeout(2000);
+
+    const doc2 = await client.getYDocument("test-doc");
+
+    expect(doc2.getMap("testMap").get("testKey")).toBe("testValue");
+
     client.close();
-}), 10000);
+}), 15000);
 
 afterAll(async () => {
     return closeYSyncWebSocket(ySync);

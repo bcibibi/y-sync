@@ -3,6 +3,7 @@ import type { YSyncSocket } from '../websocket/socket.js';
 import EventEmitter from 'events';
 
 interface YDocProviderEvents {
+    delete: [doc: Y.Doc];
     create: [doc: Y.Doc, cb: (err?: any) => void];
     update: [doc: Y.Doc, update: Uint8Array, sockets: YSyncSocket[], origin: any];
 }
@@ -16,6 +17,7 @@ export abstract class YDocProvider extends EventEmitter<YDocProviderEvents> {
     }
 
     abstract disconnect(socket: YSyncSocket): void;
+    abstract remove(docid: string, socket: YSyncSocket): void | Promise<void>;
     abstract applyUpdate(docid: string, update: Uint8Array, socket: YSyncSocket): void | Promise<void>;
     abstract stateVector(docid: string, socket: YSyncSocket): Uint8Array | Promise<Uint8Array>;
     abstract stateAsUpdate(docid: string, update: Uint8Array, socket: YSyncSocket): Uint8Array | Promise<Uint8Array>;

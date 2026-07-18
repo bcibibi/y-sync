@@ -21,6 +21,7 @@
   "workspaces": [
     "utils",
     "client",
+    "react",
     "server",
     "redis",
     "test"
