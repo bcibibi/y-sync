@@ -38,10 +38,12 @@ beforeAll(async () => {
         console.log(`Action: ${action}, Origin:`, origin?.constructor?.name ? origin.constructor.name : origin);
         if (action === 'create') {
             console.log(`Document created with id: ${doc.guid}`);
+            console.log(`DocumentMeta:`, doc.meta);
             doc.getMap("testMap").set("testKey", "testValue");
         } else if (action === 'update') {
             console.log(`Document updated with id: ${doc.guid}`);
             console.log(`Document content:`, doc.getMap("testMap").toJSON());
+            console.log(`DocumentMeta:`, doc.meta);
             doc.getMap("testMap").set("lastUpdate", new Date().toISOString());
         }
     });
@@ -62,7 +64,7 @@ beforeAll(async () => {
 test("test", async () => new Promise<void>(async (resolve, reject) => {
     client1 = await createYSyncClient(PORT, { onError: reject, onDisconnect: resolve });
 
-    const doc = await client1.getYDocument("test-doc");
+    const doc = await client1.getYDocument("test-doc", { testMeta: "testValue" });
     await timeout(2000);
 
     console.log("Document retrieved:", doc.guid);
@@ -81,7 +83,7 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
     client2 = await createYSyncClient(PORT, { onError: reject, onDisconnect: resolve });
 
     console.log("Client2 connected and retrieving document...");
-    const doc2 = await client2.getYDocument("test-doc");
+    const doc2 = await client2.getYDocument("test-doc", { testMeta: "testValue2" });
 
     console.log("Document retrieved by client2:", doc2.guid);
     console.log("Document content by client2:", doc2.getMap("testMap").toJSON());
@@ -96,7 +98,7 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
     doc.destroy();
     await timeout(2000);
 
-    const doc3 = await client1.getYDocument("test-doc");
+    const doc3 = await client1.getYDocument("test-doc", { testMeta: "testValue3" });
 
     expect(doc3.getMap("testMap").get("testKey")).toBe("finalValue");
 

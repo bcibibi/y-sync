@@ -14,13 +14,14 @@ beforeAll(async () => {
     ySync = await createYSyncWebSocket(PORT);
 
     ySync.use((doc, action, origin) => {
-        console.log(`Action: ${action}, Origin:`, origin);
         if (action === 'create') {
             console.log(`Document created with id: ${doc.guid}`);
+            console.log(`DocumentMeta:`, doc.meta);
             doc.getMap("testMap").set("testKey", "testValue");
         } else if (action === 'update') {
             console.log(`Document updated with id: ${doc.guid}`);
             console.log(`Document content:`, doc.getMap("testMap").toJSON());
+            console.log(`DocumentMeta:`, doc.meta);
         }
     });
 
@@ -30,8 +31,8 @@ beforeAll(async () => {
 test("test", async () => new Promise<void>(async (resolve, reject) => {
     const client = await createYSyncClient(PORT, { onError: reject, onDisconnect: resolve });
 
-    const doc = await client.getYDocument("test-doc");
-    await timeout(2000);
+    const doc = await client.getYDocument("test-doc", { testMeta: "testValue" });
+    await timeout(1000);
 
     console.log("Document retrieved:", doc.guid);
     console.log("Document content:", doc.getMap("testMap").toJSON());
@@ -40,17 +41,18 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
 
     doc.getMap("testMap").set("testKey", "newValue");
 
-    await timeout(2000);
+    await timeout(1000);
 
     console.log("Destroy document:", doc.guid);
     doc.destroy();
 
-    await timeout(2000);
+    await timeout(1000);
 
-    const doc2 = await client.getYDocument("test-doc");
+    const doc2 = await client.getYDocument("test-doc", { testMeta: "testValue2" });
 
     expect(doc2.getMap("testMap").get("testKey")).toBe("testValue");
 
+    console.log("Close client");
     client.close();
 }), 15000);
 

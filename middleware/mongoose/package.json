@@ -1,0 +1,74 @@
+{
+  "name": "y-sync-mongoose",
+  "version": "1.0.0",
+  "description": "Y server and client for syncing Yjs documents over Mongoose",
+  "keywords": [
+    "yjs",
+    "mongoose",
+    "sync",
+    "collaboration"
+  ],
+  "homepage": "https://github.com/bcibibi/y-sync-mongoose#readme",
+  "bugs": {
+    "url": "https://github.com/bcibibi/y-sync-mongoose/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcibibi/y-sync-mongoose.git"
+  },
+  "license": "MIT",
+  "author": "bcibibi",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    "./client": {
+      "types": "./dist/esm/client.d.ts",
+      "import": "./dist/esm/client.js",
+      "require": "./dist/cjs/client.js",
+      "default": "./dist/esm/client.js"
+    },
+    "./middleware": {
+      "types": "./dist/esm/middleware.d.ts",
+      "import": "./dist/esm/middleware.js",
+      "require": "./dist/cjs/middleware.js",
+      "default": "./dist/esm/middleware.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:dist-types": "node -e \"const fs=require('node:fs'); fs.mkdirSync('dist/cjs',{recursive:true}); fs.writeFileSync('dist/cjs/package.json', '{\\n  \\\"type\\\": \\\"commonjs\\\"\\n}\\n'); fs.mkdirSync('dist/esm',{recursive:true}); fs.writeFileSync('dist/esm/package.json', '{\\n  \\\"type\\\": \\\"module\\\"\\n}\\n');\"",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:dist-types",
+    "verify:esm": "node --input-type=module -e \"import('./dist/esm/index.js').then(() => { console.log('esm:ok'); })\"",
+    "verify:cjs": "node -e \"require('./dist/cjs/index.js'); console.log('cjs:ok');\"",
+    "verify:modules": "npm run build && npm run verify:esm && npm run verify:cjs"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/debug": "^4.1.13",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.9.1",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11",
+    "typescript": "^6.0.3",
+    "y-utils": "^1.0.0"
+  },
+  "peerDependencies": {
+    "mongoose": "^9.7.4",
+    "y-sync": "^1.0.0",
+    "y-sync-client": "^1.0.0",
+    "yjs": "^13.6.31"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "p-debounce": "^5.1.0",
+    "debug": "^4.4.3"
+  }
+}

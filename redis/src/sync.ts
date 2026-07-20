@@ -103,7 +103,7 @@ export class YSyncRedisSync {
         this.client.send('syncUpdate', this.client.id, doc.guid, update);
     }
 
-    async getDocument(docId: string): Promise<Y.Doc> {
-        return this.client.lock(docId, () => this.docs.get(docId, true, 'local'))
+    async getDocument(docId: string, meta: Record<string, any>): Promise<Y.Doc> {
+        return this.client.lock(docId, () => this.docs.get(docId, true, 'local', meta))
     }
 }

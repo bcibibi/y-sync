@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 import path from 'path';
 
 process.env.DEBUG = "y-sync:*,y-utils:*";
+process.env.DEBUG = "y-sync:middleware:*";
 
 const cwd = path.join(import.meta.dirname, '..');
 

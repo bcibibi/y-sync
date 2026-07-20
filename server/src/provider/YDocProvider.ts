@@ -19,7 +19,7 @@ export abstract class YDocProvider extends EventEmitter<YDocProviderEvents> {
     abstract disconnect(socket: YSyncSocket): void;
     abstract remove(docid: string, socket: YSyncSocket): void | Promise<void>;
     abstract applyUpdate(docid: string, update: Uint8Array, socket: YSyncSocket): void | Promise<void>;
-    abstract stateVector(docid: string, socket: YSyncSocket): Uint8Array | Promise<Uint8Array>;
+    abstract stateVector(docid: string, socket: YSyncSocket, meta: Record<string, any>): Uint8Array | Promise<Uint8Array>;
     abstract stateAsUpdate(docid: string, update: Uint8Array, socket: YSyncSocket): Uint8Array | Promise<Uint8Array>;
 
     protected emitCreate(doc: Y.Doc) {

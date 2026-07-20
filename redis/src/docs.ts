@@ -7,21 +7,22 @@ export class YSyncRedisDocs {
 
     constructor(private ttl: number, private onCreate?: (doc: Y.Doc, origin?: any) => void | Promise<void>) { }
 
-    async get<T extends boolean = false>(docId: string, create: T = false as T, origin?: any): Promise<T extends true ? Y.Doc : Y.Doc | null> {
+    async get<T extends boolean = false>(docId: string, create: T = false as T, origin?: any, meta: Record<string, any> = {}): Promise<T extends true ? Y.Doc : Y.Doc | null> {
         let value = this.docs.get(docId);
         if (!value) {
             if (!create) {
                 return null as T extends true ? Y.Doc : Y.Doc | null;
             }
-            value = await this.createDocument(docId, origin);
+            value = await this.createDocument(docId, origin, meta);
         } else {
             this.refreshTimer(docId);
+            Object.assign(value.doc.meta, meta);
         }
         return value.doc;
     }
 
-    private async createDocument(docId: string, origin?: any) {
-        const doc = new Y.Doc({ guid: docId });
+    private async createDocument(docId: string, origin?: any, meta: Record<string, any> = {}): Promise<YSyncRedisDoc> {
+        const doc = new Y.Doc({ guid: docId, meta });
         if (this.onCreate) {
             await this.onCreate(doc, origin);
         }

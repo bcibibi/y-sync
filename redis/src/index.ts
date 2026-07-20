@@ -48,13 +48,13 @@ export class YSyncRedis extends EventEmitter<YSyncRedisEvents> {
         this.middleware.use(cb, origin);
     }
 
-    async getDocument(docId: string): Promise<Y.Doc> {
-        const item = await this.sync.getDocument(docId);
+    async getDocument(docId: string, meta: Record<string, any> = {}): Promise<Y.Doc> {
+        const item = await this.sync.getDocument(docId, meta);
         return item;
     }
 
-    async withDocument<T>(docId: string, callback: (doc: Y.Doc) => T | Promise<T>): Promise<T> {
-        const doc = await this.getDocument(docId);
+    async withDocument<T>(docId: string, callback: (doc: Y.Doc) => T | Promise<T>, meta: Record<string, any> = {}): Promise<T> {
+        const doc = await this.getDocument(docId, meta);
         const result = await callback(doc);
         return result;
     }

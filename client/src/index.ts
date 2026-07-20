@@ -43,13 +43,13 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
     }
 
 
-    async getYDocument(id: string) {
+    async getYDocument(id: string, meta: Record<string, any> = {}): Promise<Y.Doc> {
         let doc = this.provider.getYDocument(id);
         if (doc) {
             return doc;
         }
         doc = await new Promise<Y.Doc>((resolve) => {
-            this.syncDocument.sync(new Y.Doc({ guid: id }), resolve);
+            this.syncDocument.sync(new Y.Doc({ guid: id, meta }), resolve);
         });
         return doc;
     }
@@ -60,6 +60,8 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
 
     close() {
         this.ws.disconnect();
-        this.ws.removeAllListeners();
+        this.ws.on('disconnect', () => {
+            this.ws.removeAllListeners();
+        });
     }
 }

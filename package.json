@@ -24,6 +24,7 @@
     "react",
     "server",
     "redis",
+    "middleware/**",
     "test"
   ],
   "scripts": {

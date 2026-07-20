@@ -28,7 +28,7 @@ export class YSyncDocument extends EventEmitter {
     }
 
     private syncStep1(doc: Y.Doc) {
-        this.ws.send('syncStep1', doc.guid, Y.encodeStateVector(doc));
+        this.ws.send('syncStep1', doc.guid, Y.encodeStateVector(doc), JSON.stringify(doc.meta));
     }
 
     private syncStep2(doc: Y.Doc, update: Uint8Array) {

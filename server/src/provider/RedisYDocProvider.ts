@@ -51,9 +51,9 @@ export class RedisYDocProvider extends YDocProvider {
         Y.applyUpdate(doc, update, socket);
     }
 
-    async stateVector(docid: string, socket: YSyncSocket): Promise<Uint8Array> {
+    async stateVector(docid: string, socket: YSyncSocket, meta: Record<string, any>): Promise<Uint8Array> {
         await this.waitForConnection();
-        const doc = await this.client.getDocument(docid);
+        const doc = await this.client.getDocument(docid, meta);
         this.addSocket(docid, socket);
         return Y.encodeStateVector(doc);
     }

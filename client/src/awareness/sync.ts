@@ -16,17 +16,23 @@ export class YSyncAwareness {
     constructor(private ws: YSyncClientWebSocket) {
         this._awareness = new Awareness(new Y.Doc());
         this._awareness.setLocalState({});
-        this._awareness.on('update', this.handleUpdate.bind(this));
         ws.on('connect', this.handleConnect.bind(this));
+        ws.on('disconnect', this.handleDisconnect.bind(this));
         ws.on('reconnect', this.handleConnect.bind(this));
         ws.on('syncAwareness', this.handleSyncAwareness.bind(this));
     }
 
     private handleConnect() {
+        this._awareness.on('update', this.handleUpdate.bind(this));
         if (this._awareness.getLocalState() !== null) {
             log("WebSocket connected, sending local awareness state, %j", this._awareness.getLocalState());
             this.sendUpdate([this._awareness.clientID]);
         }
+    }
+
+    private handleDisconnect() {
+        log("WebSocket disconnected");
+        this._awareness.off('update', this.handleUpdate.bind(this));
     }
 
     private getUpdate(clients: number[]) {

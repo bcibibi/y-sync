@@ -8,11 +8,11 @@ const log = debug('y-sync:server:sync');
 
 export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, { onCreate, onUpdate, onDestroy }: YSyncCallbacks) {
 
-    const handleSyncStep1 = async (docId: string, update: Uint8Array) => {
+    const handleSyncStep1 = async (docId: string, update: Uint8Array, meta: string) => {
         try {
             log(`Received syncStep1 for document ${docId}`);
             log(`Sending syncStep1 for document ${docId}`);
-            socket.send('syncStep1', docId, await provider.stateVector(docId, socket));
+            socket.send('syncStep1', docId, await provider.stateVector(docId, socket, JSON.parse(meta)));
             log(`Sending syncStep2 for document ${docId}`);
             socket.send('syncStep2', docId, await provider.stateAsUpdate(docId, update, socket));
         } catch (error) {

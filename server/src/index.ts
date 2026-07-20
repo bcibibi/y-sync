@@ -44,21 +44,32 @@ export class YSync {
     }
 
     private handleCreate(doc: Y.Doc) {
-        Y.transact(doc, () => {
-            this.middleware.forEach((cb) => cb(doc, 'create'));
+        return Y.transact(doc, async () => {
+            for (const cb of this.middleware) {
+                await cb(doc, 'create');
+            }
         }, 'middleware');
     }
 
     private handleUpdate(doc: Y.Doc, origin: any) {
         if (origin !== 'middleware') {
-            Y.transact(doc, () => {
-                this.middleware.forEach((cb) => cb(doc, 'update', origin));
-            }, 'middleware');
+            Y.transact(doc, async () => {
+                for (const cb of this.middleware) {
+                    await cb(doc, 'update', origin);
+                }
+            }, 'middleware')
+                .catch(err => console.error('Error in middleware update:', err));
         }
     }
 
-    private handleDestroy(doc: Y.Doc) {
-        this.middleware.forEach((cb) => cb(doc, 'delete'));
+    private async handleDestroy(doc: Y.Doc) {
+        try {
+            for (const cb of this.middleware) {
+                await cb(doc, 'delete');
+            }
+        } catch (err) {
+            console.error('Error in middleware delete:', err);
+        }
     }
 
     close(cb?: (err?: Error) => void) {

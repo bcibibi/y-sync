@@ -5,7 +5,8 @@
   "workspaceFolder": "/workspace",
   "runServices": [
     "dev",
-    "redis"
+    "redis",
+    "mongodb"
   ],
   "forwardPorts": [5173],
   "shutdownAction": "stopCompose",
