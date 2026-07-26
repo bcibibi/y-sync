@@ -1,5 +1,5 @@
 import React from "react";
-import { useYSyncClient } from "../provider/YSyncClientReact";
+import { useYSyncClient } from "../provider/YSyncClientReact.js";
 import * as Y from "yjs";
 import debug from "debug";
 

@@ -1,5 +1,5 @@
 {
-  "name": "y-sync-mongoose",
+  "name": "@bcibibi/y-sync-middleware-mongoose",
   "version": "1.0.0",
   "description": "Y server and client for syncing Yjs documents over Mongoose",
   "keywords": [
@@ -8,13 +8,13 @@
     "sync",
     "collaboration"
   ],
-  "homepage": "https://github.com/bcibibi/y-sync-mongoose#readme",
+  "homepage": "https://github.com/bcibibi/y-sync/tree/main/middleware/mongoose#readme",
   "bugs": {
-    "url": "https://github.com/bcibibi/y-sync-mongoose/issues"
+    "url": "https://github.com/bcibibi/y-sync/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bcibibi/y-sync-mongoose.git"
+    "url": "git+https://github.com/bcibibi/y-sync.git"
   },
   "license": "MIT",
   "author": "bcibibi",
@@ -57,18 +57,17 @@
     "@types/node": "^25.9.1",
     "jest": "^30.4.2",
     "ts-jest": "^29.4.11",
-    "typescript": "^6.0.3",
-    "y-utils": "^1.0.0"
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "mongoose": "^9.7.4",
-    "y-sync": "^1.0.0",
-    "y-sync-client": "^1.0.0",
+    "@bcibibi/y-sync-server": "^1.0.0",
+    "@bcibibi/y-sync-client": "^1.0.0",
     "yjs": "^13.6.31"
   },
   "dependencies": {
-    "crypto-js": "^4.2.0",
     "p-debounce": "^5.1.0",
-    "debug": "^4.4.3"
+    "debug": "^4.4.3",
+    "@bcibibi/y-utils": "^1.0.0"
   }
 }

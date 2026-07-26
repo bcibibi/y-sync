@@ -1,5 +1,5 @@
 
-export { YSyncClientReact, useYSyncClient } from './provider/YSyncClientReact'
-export { useYDocument } from './hook/document'
-export { useY } from './hook/value'
-import 'y-utils/override'
+export { YSyncClientReact, useYSyncClient } from './provider/YSyncClientReact.js'
+export { useYDocument } from './hook/document.js'
+export { useY } from './hook/value.js'
+import '@bcibibi/y-utils/override'

@@ -20,7 +20,7 @@ export type {
 export { MemoryYDocProvider } from './provider/MemoryYDocProvider.js';
 export { RedisYDocProvider } from './provider/RedisYDocProvider.js';
 
-export class YSync {
+export class YSyncServer {
     private provider: YDocProvider;
     private ws: YSyncWebSocket;
     private awareness: YSyncAwareness;

@@ -1,4 +1,5 @@
-import { YSyncClient, type YSyncClientOptions } from 'y-sync-client';
+import { YSyncClient, type YSyncClientOptions } from '@bcibibi/y-sync-client';
+import '@bcibibi/y-utils/override';
 
 export class YSyncMongoose extends YSyncClient {
 

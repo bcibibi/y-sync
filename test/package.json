@@ -1,23 +1,23 @@
 {
-  "name": "y-sync-test",
+  "name": "@bcibibi/y-sync-test",
   "version": "1.0.0",
-  "description": "Y server and client for syncing Yjs documents over WebRTC",
+  "description": "Test for y-sync project",
   "keywords": [
     "yjs",
     "webrtc",
     "sync",
     "collaboration"
   ],
-  "homepage": "https://github.com/bcibibi/y-sync-client#readme",
+  "homepage": "https://github.com/bcibibi/y-sync/tree/main/test#readme",
   "bugs": {
-    "url": "https://github.com/bcibibi/y-sync-client/issues"
+    "url": "https://github.com/bcibibi/y-sync/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bcibibi/y-sync.git"
   },
   "license": "MIT",
-  "author": "bcibi",
+  "author": "bcibibi",
   "type": "module",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",

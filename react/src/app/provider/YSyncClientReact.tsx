@@ -1,5 +1,5 @@
 import React from "react";
-import { YSyncClient, type YSyncClientOptions } from "y-sync-client";
+import { YSyncClient, type YSyncClientOptions } from "@bcibibi/y-sync-client";
 import debug from "debug";
 
 const log = debug("y-sync-react:YSyncClientReact");

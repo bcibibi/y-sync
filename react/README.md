@@ -1,75 +1,61 @@
-# React + TypeScript + Vite
+# @bcibibi/y-react
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> Beta: this package is currently in beta and APIs/behavior may evolve.
 
-Currently, two official plugins are available:
+React layer for integrating y-sync in a frontend application.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+This package exposes:
 
-## React Compiler
+- `YSyncClientReact`
+- `useYSyncClient`
+- `useYDocument`
+- `useY`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Installation
 
-## Expanding the ESLint configuration
+Install the module and peer dependencies:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install @bcibibi/y-react react react-dom yjs
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Module Usage
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Wrap your app with `YSyncClientReact`, then consume documents with `useYDocument`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```tsx
+import React from 'react'
+import { YSyncClientReact, useYDocument, useY } from '@bcibibi/y-react'
 
+function Editor() {
+	const doc = useYDocument('demo-doc')
+	const root = doc?.getMap<{ title: string }>('root')
+	const title = useY(root, 'title', { deep: true })
+
+	return <h1>{title ?? 'Untitled document'}</h1>
+}
+
+export default function App() {
+	return (
+		<YSyncClientReact
+			url='ws://localhost:1234'
+			onError={(error) => console.error('y-sync error', error)}
+		>
+			<Editor />
+		</YSyncClientReact>
+	)
+}
 ```
+
+### Notes
+
+- `YSyncClientReact` creates and manages the WebSocket client lifecycle.
+- `useYDocument(docId)` subscribes to a collaborative `Y.Doc`.
+- `useY(...)` subscribes React rendering to Yjs map/array changes.
+- Yjs overrides from `@bcibibi/y-utils/override` are loaded automatically by this package.
+
+## See Also
+
+- Server setup: [../server/README.md](../server/README.md)
+- Client API details: [../client/README.md](../client/README.md)
+

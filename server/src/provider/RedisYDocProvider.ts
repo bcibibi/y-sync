@@ -1,6 +1,6 @@
 import debug from 'debug';
-import type { YSyncRedisMiddlewareAction } from "y-sync-redis";
-import { YSyncRedis } from "y-sync-redis";
+import type { YSyncRedisMiddlewareAction } from "@bcibibi/y-sync-redis";
+import { YSyncRedis } from "@bcibibi/y-sync-redis";
 import * as Y from 'yjs';
 import type { YSyncRedisProviderOptions } from "../types/redis.js";
 import type { YSyncSocket } from "../websocket/socket.js";

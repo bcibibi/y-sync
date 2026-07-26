@@ -1,23 +1,23 @@
 {
-  "name": "y-sync-client",
+  "name": "@bcibibi/y-sync-client",
   "version": "1.0.0",
-  "description": "Y server and client for syncing Yjs documents over WebRTC",
+  "description": "Client for syncing Yjs documents over WebSockets connections. This package is part of the y-sync project.",
   "keywords": [
     "yjs",
-    "webrtc",
+    "websockets",
     "sync",
     "collaboration"
   ],
-  "homepage": "https://github.com/bcibibi/y-sync-client#readme",
+  "homepage": "https://github.com/bcibibi/y-sync/tree/main/client#readme",
   "bugs": {
-    "url": "https://github.com/bcibibi/y-sync-client/issues"
+    "url": "https://github.com/bcibibi/y-sync/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bcibibi/y-sync.git"
   },
   "license": "MIT",
-  "author": "bcibi",
+  "author": "bcibibi",
   "type": "module",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",

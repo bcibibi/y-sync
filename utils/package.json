@@ -1,20 +1,20 @@
 {
-  "name": "y-utils",
+  "name": "@bcibibi/y-utils",
   "version": "1.0.0",
-  "description": "Y server and client for syncing Yjs documents over Redis",
+  "description": "Utilities for Yjs documents, part of the y-sync project",
   "keywords": [
     "yjs",
     "redis",
     "sync",
     "collaboration"
   ],
-  "homepage": "https://github.com/bcibibi/y-utils#readme",
+  "homepage": "https://github.com/bcibibi/y-sync/tree/main/utils#readme",
   "bugs": {
-    "url": "https://github.com/bcibibi/y-utils/issues"
+    "url": "https://github.com/bcibibi/y-sync/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bcibibi/y-utils.git"
+    "url": "git+https://github.com/bcibibi/y-sync.git"
   },
   "license": "MIT",
   "author": "bcibibi",

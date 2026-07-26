@@ -1,14 +1,14 @@
 {
-  "name": "y-sync",
+  "name": "@bcibibi/y-sync-server",
   "version": "1.0.0",
-  "description": "Y server and client for syncing Yjs documents over WebRTC",
+  "description": "Server for syncing Yjs documents over Websocket",
   "keywords": [
     "yjs",
-    "webrtc",
+    "websocket",
     "sync",
     "collaboration"
   ],
-  "homepage": "https://github.com/bcibibi/y-sync#readme",
+  "homepage": "https://github.com/bcibibi/y-sync/tree/main/server#readme",
   "bugs": {
     "url": "https://github.com/bcibibi/y-sync/issues"
   },
@@ -17,7 +17,7 @@
     "url": "git+https://github.com/bcibibi/y-sync.git"
   },
   "license": "MIT",
-  "author": "bcibi",
+  "author": "bcibibi",
   "type": "module",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -53,12 +53,11 @@
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
+    "@bcibibi/y-sync-redis": "^1.0.0",
     "ioredis": "^5.11.1",
     "yjs": "^13.6.31"
   },
   "dependencies": {
-    "@sesamecare-oss/redlock": "^1.4.0",
-    "y-sync-redis": "^1.0.0",
     "debug": "^4.4.3",
     "lib0": "^0.2.117",
     "ws": "^8.21.0"

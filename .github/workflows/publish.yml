@@ -1,0 +1,65 @@
+name: Publish Packages on Tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build all packages
+        run: npm run build
+
+      - name: Publish utils package
+        run: npm publish
+        working-directory: ./utils
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish client package
+        run: npm publish
+        working-directory: ./client
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish server package
+        run: npm publish
+        working-directory: ./server
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish redis package
+        run: npm publish
+        working-directory: ./redis
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish react package
+        run: npm publish
+        working-directory: ./react
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish mongoose middleware package
+        run: npm publish
+        working-directory: ./middleware/mongoose
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

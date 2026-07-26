@@ -1,7 +1,7 @@
-import type { YSyncAction } from 'y-sync';
+import type { YSyncAction } from '@bcibibi/y-sync-server';
 import * as Y from 'yjs';
-import mongoose, { Document, Schema, type ToObjectOptions } from "mongoose";
-import 'y-utils/override';
+import mongoose, { Document, type ToObjectOptions } from "mongoose";
+import '@bcibibi/y-utils/override';
 import pDebounce from 'p-debounce';
 import debug from 'debug';
 
