@@ -1,6 +1,5 @@
 {
   "name": "@bcibibi/y-react",
-  "private": true,
   "version": "1.0.0",
   "description": "React components for syncing Yjs documents over WebSockets connections. This package is part of the y-sync project.",
   "keywords": [
