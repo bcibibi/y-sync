@@ -22,8 +22,8 @@
     "utils",
     "client",
     "react",
-    "server",
     "redis",
+    "server",
     "middleware/**",
     "test"
   ],
