@@ -16,6 +16,7 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
     private lastMessageTime: number;
     private _websocket: YSyncWebSocketConstructor;
     private reconnectInterval: number;
+    private path: string
     private execReconnect = false;
 
     get id(): string {
@@ -25,11 +26,13 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
     constructor(private url: string, {
         autoconnect = true,
         reconnectInterval = 5000,
+        path = "/ysync",
         websocket
     }: YSyncClientOptions) {
         super();
         this.lastMessageTime = Date.now();
         this.reconnectInterval = reconnectInterval;
+        this.path = path;
         this._websocket = websocket ?? YSyncClientWebSocket.resolveGlobalWebSocket();
         if (autoconnect) {
             this.connect();
@@ -70,11 +73,13 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
         log(`Disconnecting WebSocket ${this._id}`);
         this.ws?.close();
         this.ws = undefined;
+        this.connected = false;
+        this.connecting = false;
         log('WebSocket disconnected');
     }
 
     private buildUrlWithParams(url: string, params: Record<string, string>): string {
-        const urlObj = new URL(url);
+        const urlObj = new URL(this.path, url);
         for (const [key, value] of Object.entries(params)) {
             urlObj.searchParams.append(key, value);
         }

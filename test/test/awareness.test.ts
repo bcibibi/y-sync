@@ -1,12 +1,12 @@
 import { beforeAll, test, afterAll, expect } from "@jest/globals";
-import { YSync } from "y-sync";
+import { YSyncServer } from "@bcibibi/y-sync-server";
 import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
 import { createYSyncClient } from "../utils/client.js";
 import { timeout } from "../utils/timeout.js";
 
 const PORT = 3000;
 
-let ySync: YSync;
+let ySync: YSyncServer;
 
 beforeAll(async () => {
     ySync = await createYSyncWebSocket(PORT, {

@@ -1,16 +1,15 @@
-import { beforeAll, test, afterAll, expect } from "@jest/globals";
-import { YSync, RedisYDocProvider } from "y-sync";
-import { YSyncClient } from "y-sync-client";
-import http from "http";
-import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
+import { YSyncClient } from "@bcibibi/y-sync-client";
+import { YSyncRedis } from "@bcibibi/y-sync-redis";
+import { RedisYDocProvider, YSyncServer } from "@bcibibi/y-sync-server";
+import { afterAll, beforeAll, expect, test } from "@jest/globals";
+import { Redis } from "ioredis";
 import { createYSyncClient } from "../utils/client.js";
-import { timeout } from "../utils/timeout.js";
-import {Redis} from "ioredis";
-import { YSyncRedis } from "y-sync-redis";
 import { createRedisClient } from "../utils/redis.js";
+import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
+import { timeout } from "../utils/timeout.js";
 
 const PORT = 3000;
-let ySync: YSync;
+let ySync: YSyncServer;
 let clientRedis: YSyncRedis;
 let client1: YSyncClient;
 let client2: YSyncClient;

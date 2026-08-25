@@ -1,6 +1,6 @@
 
 import {Redis} from "ioredis";
-import { YSyncRedis } from "y-sync-redis";
+import { YSyncRedis } from "@bcibibi/y-sync-redis";
 
 export const createRedisClient = async () => {
     const pub = new Redis("redis://redis:6379");

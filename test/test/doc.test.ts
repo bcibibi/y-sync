@@ -1,6 +1,6 @@
-import { beforeAll, test, afterAll, expect } from "@jest/globals";
+import '@bcibibi/y-utils/override';
+import { expect, test } from "@jest/globals";
 import * as Y from "yjs";
-import 'y-utils/override';
 
 interface TestMap {
     testKey: string;
