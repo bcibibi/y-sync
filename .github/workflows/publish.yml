@@ -33,35 +33,23 @@ jobs:
       - name: Publish utils package
         run: npm publish --provenance --access public
         working-directory: ./utils
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish client package
         run: npm publish --provenance --access public
         working-directory: ./client
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish server package
         run: npm publish --provenance --access public
         working-directory: ./server
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish redis package
         run: npm publish --provenance --access public
         working-directory: ./redis
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish react package
         run: npm publish --provenance --access public
         working-directory: ./react
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish mongoose middleware package
         run: npm publish --provenance --access public
         working-directory: ./middleware/mongoose
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
