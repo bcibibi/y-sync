@@ -1,6 +1,6 @@
 {
   "name": "@bcibibi/y-sync-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Server for syncing Yjs documents over Websocket",
   "keywords": [
     "yjs",
@@ -53,7 +53,7 @@
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@bcibibi/y-sync-redis": "^1.0.0",
+    "@bcibibi/y-sync-redis": "^1.0.1",
     "ioredis": "^5.11.1",
     "yjs": "^13.6.31"
   },

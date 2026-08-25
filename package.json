@@ -1,6 +1,6 @@
 {
   "name": "y-sync-package",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Y server and client for syncing Yjs documents over WebRTC",
   "keywords": [
     "yjs",
@@ -28,6 +28,8 @@
     "test"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present",
+    "version-deps": "find . -name package.json -not -path \"*/node_modules/*\" -exec sed -Ei \"s#(\\\"@bcibibi/.*\\\": *\\\")\\^[^\\\"]*#\\1^$(npm pkg get version | tr -d '\"')#g\" {} \\;",
+    "version-patch": "npm version patch --workspaces && npm run version-deps"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@bcibibi/y-sync-middleware-mongoose",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Y server and client for syncing Yjs documents over Mongoose",
   "keywords": [
     "yjs",
@@ -61,13 +61,13 @@
   },
   "peerDependencies": {
     "mongoose": "^9.7.4",
-    "@bcibibi/y-sync-server": "^1.0.0",
-    "@bcibibi/y-sync-client": "^1.0.0",
+    "@bcibibi/y-sync-server": "^1.0.1",
+    "@bcibibi/y-sync-client": "^1.0.1",
     "yjs": "^13.6.31"
   },
   "dependencies": {
     "p-debounce": "^5.1.0",
     "debug": "^4.4.3",
-    "@bcibibi/y-utils": "^1.0.0"
+    "@bcibibi/y-utils": "^1.0.1"
   }
 }
