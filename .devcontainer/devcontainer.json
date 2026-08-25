@@ -11,7 +11,9 @@
   "forwardPorts": [5173],
   "shutdownAction": "stopCompose",
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    }
   },
   "customizations": {
     "vscode": {

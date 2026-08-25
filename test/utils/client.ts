@@ -1,5 +1,5 @@
 
-import { YSyncClient, type YSyncClientOptions } from "y-sync-client";
+import { YSyncClient, type YSyncClientOptions } from "@bcibibi/y-sync-client";
 
 export async function createYSyncClient(port: number, {
     onError, 

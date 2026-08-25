@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { YSyncMongoose } from "y-sync-mongoose/client";
+import { YSyncMongoose } from "@bcibibi/y-sync-middleware-mongoose/client";
 
 
 interface TestDocument {
@@ -31,6 +31,6 @@ export async function connectToDatabase() {
 
 export async function getMongooseDocument(id: string) {
     const client = new YSyncMongoose('ws://localhost:3000');
-    await new Promise(resolve => client.once('connect', resolve));
+    await new Promise<void>(resolve => client.once('connect', resolve));
     return client.getMongooseDocument<TestDocument>("Test", id);
 }

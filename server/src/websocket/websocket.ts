@@ -14,7 +14,7 @@ export class YSyncWebSocket extends EventEmitter<YSyncWebSocketEvents> {
 
     constructor(private server: http.Server, private options: YSyncWebSocketOptions) {
         super();
-        this.wss = new WebSocketServer({ noServer: true });
+        this.wss = new WebSocketServer({ noServer: true, path: options.path });
         this.server.on('upgrade', (request, socket, head) => {
             this.wss?.handleUpgrade(request, socket, head, this.handleUpgradeCallback.bind(this));
         })

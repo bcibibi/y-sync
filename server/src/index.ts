@@ -28,7 +28,7 @@ export class YSyncServer {
 
     constructor(private server: http.Server, private options?: YSyncOptions) {
         this.provider = options?.provider ?? new MemoryYDocProvider();
-        this.ws = new YSyncWebSocket(server, { provider: this.provider });
+        this.ws = new YSyncWebSocket(server, { provider: this.provider, path: options?.path || "/ysync" });
         this.awareness = new YSyncAwareness(options?.awareness);
         this.ws.on('error', (error) => console.error('WebSocket error:', error));
         this.ws.use(this.handleSync.bind(this));

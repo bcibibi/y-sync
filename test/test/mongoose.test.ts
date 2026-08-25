@@ -1,13 +1,13 @@
 import { beforeAll, test, afterAll, expect } from "@jest/globals";
 import { connectToDatabase, getMongooseDocument } from "../utils/mongoose.js";
-import type { YSync } from "y-sync";
+import { YSyncServer } from "@bcibibi/y-sync-server";
 import { createYSyncWebSocket } from "../utils/server.js";
-import { ySyncMongooseMiddleware } from "y-sync-mongoose/middleware";
+import { ySyncMongooseMiddleware } from "@bcibibi/y-sync-middleware-mongoose/middleware";
 import { timeout } from "../utils/timeout.js";
 
 let id: string | undefined = undefined;
 const PORT = 3000;
-let ySync: YSync;
+let ySync: YSyncServer;
 
 beforeAll(async () => {
     id = await connectToDatabase().then(doc => doc._id.toString());

@@ -14,5 +14,6 @@ export type YSyncWebSocketConstructor = new (url: string, protocols?: string | s
 export interface YSyncClientOptions {
     autoconnect?: boolean;
     reconnectInterval?: number;
+    path?: string;
     websocket?: YSyncWebSocketConstructor;
 }

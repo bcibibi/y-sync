@@ -44,6 +44,11 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "@bcibibi/y-sync-server": "*",
+    "@bcibibi/y-sync-client": "*",
+    "@bcibibi/y-sync-middleware-mongoose": "*",
+    "@bcibibi/y-sync-redis": "*",
+    "@bcibibi/y-utils": "*",
     "ioredis": "^5.11.1"
   }
 }

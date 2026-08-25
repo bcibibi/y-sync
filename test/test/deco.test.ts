@@ -1,16 +1,16 @@
 import { beforeAll, test, afterAll } from "@jest/globals";
-import { YSync } from "y-sync";
+import { YSyncServer } from "@bcibibi/y-sync-server";
 import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
 import { createYSyncClient } from "../utils/client.js";
 import { timeout } from "../utils/timeout.js";
 
 const PORT = 3000;
 
-let ySync: YSync;
+let ySync: YSyncServer;
 
 const startServer = async () => {
 
-    ySync = await createYSyncWebSocket(PORT);
+    ySync = await createYSyncWebSocket(PORT, {path: "/test-path/ysync"});
 
     ySync.use((doc, action) => {
         if (action === 'create') {
@@ -27,7 +27,7 @@ const startServer = async () => {
 beforeAll(startServer, 10000);
 
 test("test", () => new Promise<void>(async (resolve, reject) => {
-    const client = await createYSyncClient(PORT, {}, { reconnectInterval: 2000 });
+    const client = await createYSyncClient(PORT, {}, { reconnectInterval: 2000, path: "/test-path/ysync" });
     
     client.on('reconnect', () => {
         console.log("Client reconnected to server");

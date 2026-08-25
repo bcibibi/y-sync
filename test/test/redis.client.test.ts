@@ -1,8 +1,6 @@
-import { YSyncRedis } from "y-sync-redis";
-import { beforeAll, test, afterAll, expect } from "@jest/globals";
-import {Redis} from "ioredis";
-import { timeout } from "../utils/timeout.js";
+import { expect, test } from "@jest/globals";
 import { createRedisClient } from "../utils/redis.js";
+import { timeout } from "../utils/timeout.js";
 
 test("YSyncRedis class should be defined", async () => {
     const server1 = await createRedisClient();
