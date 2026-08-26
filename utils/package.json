@@ -16,9 +16,6 @@
     "type": "git",
     "url": "git+https://github.com/bcibibi/y-sync.git"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "license": "MIT",
   "author": "bcibibi",
   "type": "module",
