@@ -21,6 +21,8 @@ const syncServer = new YSyncServer(httpServer)
 
 httpServer.listen(1234)
 
+// Clients connect to ws://localhost:1234/ysync by default
+
 // Optional: graceful shutdown
 process.on('SIGINT', () => {
   syncServer.close((err) => {
@@ -28,6 +30,60 @@ process.on('SIGINT', () => {
     process.exit(err ? 1 : 0)
   })
 })
+```
+
+## Server Options
+
+Pass options as the second argument to `YSyncServer`:
+
+```ts
+const syncServer = new YSyncServer(httpServer, {
+  path: '/collaboration'
+})
+```
+
+- `provider?: YDocProvider`: document provider. Defaults to `MemoryYDocProvider`.
+- `awareness?: YSyncAwarenessOptions`: awareness configuration.
+- `path?: string`: WebSocket endpoint path. Defaults to `/ysync`.
+
+With the example above, clients must use `ws://localhost:1234/collaboration`.
+
+## Authentication
+
+Register an authentication handler with `syncServer.auth(...)`. It runs before a WebSocket upgrade is accepted.
+
+Call `next(true)` to accept the connection. Call `next(false)` or `next(new Error(...))` to reject it.
+
+```ts
+import { createServer } from 'node:http'
+import { YSyncServer } from '@bcibibi/y-sync-server'
+
+const httpServer = createServer()
+const syncServer = new YSyncServer(httpServer, {
+  path: '/collaboration'
+})
+
+syncServer.auth((request, _response, next) => {
+  const authorization = request.headers.authorization
+  const token = authorization?.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length)
+    : undefined
+
+  if (token !== process.env.YSYNC_TOKEN) {
+    next(false)
+    return
+  }
+
+  next(true)
+})
+
+httpServer.listen(1234)
+```
+
+The authentication handler signature is:
+
+```ts
+(request: IncomingMessage, response: unknown, next: (result: Error | boolean) => void) => void | Promise<unknown>
 ```
 
 ## Middleware Example

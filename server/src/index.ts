@@ -8,6 +8,7 @@ import * as Y from 'yjs';
 import type { YSyncSocket } from './websocket/socket.js';
 import type { YSyncOptions, YSyncWebSocketOptions, YSyncAwarenessOptions } from './types/options.js';
 import type { YSyncMiddleware, YSyncAction } from './types/middleware.js';
+import type { YSyncWebSocketAuthFct } from './types/websocket.js';
 
 export type {
     YSyncMiddleware,
@@ -33,6 +34,10 @@ export class YSyncServer {
         this.ws.on('error', (error) => console.error('WebSocket error:', error));
         this.ws.use(this.handleSync.bind(this));
         this.ws.use(this.awareness.middleware.bind(this.awareness));
+    }
+
+    auth(authFct: YSyncWebSocketAuthFct) {
+        this.ws.auth(authFct);
     }
 
     use(cb: YSyncMiddleware) {
