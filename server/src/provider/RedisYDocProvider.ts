@@ -85,7 +85,8 @@ export class RedisYDocProvider extends YDocProvider {
             await this.emitCreate(doc);
         } else if (action === "delete") {
             log(`Emitting delete for document ${doc.guid}`);
-            this.emit('delete', doc);
+            let sockets = this.sockets.get(doc.guid) || [];
+            this.emit('delete', doc, sockets);
         } else if (action === "update" && update) {
             log(`Emitting update for document ${doc.guid}`);
             log(`Origin of update: ${origin ? origin.constructor?.name : 'unknown'}`);

@@ -3,7 +3,7 @@ import type { YSyncSocket } from '../websocket/socket.js';
 import EventEmitter from 'events';
 
 interface YDocProviderEvents {
-    delete: [doc: Y.Doc];
+    delete: [doc: Y.Doc, sockets: YSyncSocket[]];
     create: [doc: Y.Doc, cb: (err?: any) => void];
     update: [doc: Y.Doc, update: Uint8Array, sockets: YSyncSocket[], origin: any];
 }

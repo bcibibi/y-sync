@@ -68,8 +68,14 @@ export class YSyncClient {
         if (doc) {
             return doc;
         }
-        doc = await new Promise<Y.Doc>((resolve) => {
-            this.syncDocument.sync(new Y.Doc({ guid: id, meta }), resolve);
+        doc = await new Promise<Y.Doc>((resolve, reject) => {
+            this.syncDocument.sync(new Y.Doc({ guid: id, meta }), (err, doc) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(doc);
+            });
         });
         return doc;
     }

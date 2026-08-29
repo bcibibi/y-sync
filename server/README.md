@@ -88,7 +88,9 @@ The authentication handler signature is:
 
 ## Middleware Example
 
-Use `syncServer.use(...)` to run custom logic on document lifecycle events.
+Use `syncServer.use(...)` to run custom logic on document lifecycle events. The server passes a `transaction` callback to every middleware.
+
+Use this callback for every mutation of the `Y.Doc`. It wraps the change in a Yjs transaction with the `middleware` origin, preventing the server from re-running middleware for its own changes.
 
 ```ts
 import { createServer } from 'node:http'
@@ -97,8 +99,14 @@ import { YSyncServer } from '@bcibibi/y-sync-server'
 const httpServer = createServer()
 const syncServer = new YSyncServer(httpServer)
 
-syncServer.use(async (doc, action, origin) => {
+syncServer.use(async (doc, action, transaction, origin, error) => {
   if (action === 'create') {
+    transaction(() => {
+      doc.getMap<{ initializedAt: string }>('metadata').set(
+        'initializedAt',
+        new Date().toISOString()
+      )
+    })
     console.log('Document created:', doc.guid)
     return
   }
@@ -111,6 +119,8 @@ syncServer.use(async (doc, action, origin) => {
   if (action === 'delete') {
     console.log('Document deleted:', doc.guid)
   }
+
+  // Use error?.(err) to report middleware-specific failures when needed.
 })
 
 httpServer.listen(1234)
@@ -119,7 +129,13 @@ httpServer.listen(1234)
 The middleware signature is:
 
 ```ts
-(doc: Y.Doc, action: 'create' | 'update' | 'delete', origin?: any) => void | Promise<void>
+(doc: Y.Doc, action: 'create' | 'update' | 'delete', transaction: YSyncTransaction, origin?: any, error?: (err: any) => void) => void | Promise<void>
+```
+
+`transaction` has the following signature:
+
+```ts
+<R>(callback: () => R) => R
 ```
 
 ## RedisYDocProvider Example

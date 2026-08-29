@@ -16,7 +16,8 @@ export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, {
             log(`Sending syncStep2 for document ${docId}`);
             socket.send('syncStep2', docId, await provider.stateAsUpdate(docId, update, socket));
         } catch (error) {
-            console.error(`Error handling syncStep1 for document ${docId}:`, error);
+            handleError(docId, 'Error handling syncStep1', error, [socket]);
+            socket.send('syncStep1:error', docId, error instanceof Error ? error.message : String(error));
         }
     };
 
@@ -25,7 +26,7 @@ export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, {
             log(`Received syncStep2 for document ${docId}`);
             await provider.applyUpdate(docId, update, socket);
         } catch (error) {
-            console.error(`Error handling syncStep2 for document ${docId}:`, error);
+            handleError(docId, 'Error handling syncStep2', error, [socket]);
         }
     };
 
@@ -34,7 +35,7 @@ export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, {
             log(`Received syncUpdate for document ${docId}`);
             await provider.applyUpdate(docId, update, socket);
         } catch (error) {
-            console.error(`Error handling syncUpdate for document ${docId}:`, error);
+            handleError(docId, 'Error handling syncUpdate', error, [socket]);
         }
     };
 
@@ -43,38 +44,48 @@ export function sync(socket: YSyncSocket, { provider }: YSyncWebSocketOptions, {
             log(`Received syncDestroy for document ${docId}`);
             await provider.remove(docId, socket);
         } catch (error) {
-            console.error(`Error handling syncDestroy for document ${docId}:`, error);
+            handleError(docId, 'Error handling syncDestroy', error, [socket]);
         }
     };
 
-    const handleDocUpdate = (doc: Y.Doc, update: Uint8Array, sockets: YSyncSocket[], origin: any) => {
-        log(`Emitting syncUpdate for document ${doc.guid}, nomber of sockets: ${sockets.length}`);
-        sockets.forEach(s => {
-            s.send('syncUpdate', doc.guid, update);
-        });
-        onUpdate(doc, origin);
+    const handleDocUpdate = async (doc: Y.Doc, update: Uint8Array, sockets: YSyncSocket[], origin: any) => {
+        log(`Emitting syncUpdate for document ${doc.guid}, number of sockets: ${sockets.length}`);
+        try {
+            sockets.forEach(s => {
+                s.send('syncUpdate', doc.guid, update);
+            });
+            await onUpdate(doc, origin, err => handleError(doc.guid, 'Error handling document update', err, sockets));
+        } catch (error) {
+            handleError(doc.guid, 'Error handling document update', error, [...sockets, socket]);
+        }
     };
 
     const handleDocCreate = async (doc: Y.Doc, cb: (err?: any) => void) => {
         log(`Document created with id: ${doc.guid}`);
         let err: any;
         try {
-            await onCreate(doc);
+            await onCreate(doc, err => handleError(doc.guid, 'Error handling document create', err, [socket]));
         } catch (error) {
             err = error;
         } finally {
             cb(err);
         }
-    }
+    };
 
-    const handleDocDestroy = async (doc: Y.Doc) => {
+    const handleDocDestroy = async (doc: Y.Doc, sockets: YSyncSocket[]) => {
         log(`Document destroyed with id: ${doc.guid}`);
         try {
-            await onDestroy(doc);
+            await onDestroy(doc, err => handleError(doc.guid, 'Error handling document destroy', err, sockets));
         } catch (error) {
-            console.error(`Error handling document destroy for document ${doc.guid}:`, error);
+            handleError(doc.guid, 'Error handling document destroy', error, sockets);
         }
-    }
+    };
+
+    const handleError = (docid: string, message: string, err: any, sockets: YSyncSocket[]) => {
+        console.error('Sync error in document', docid, ':', message, err);
+        log('Send error to sockets:', sockets.map(s => s.id));
+        sockets.forEach(socket => socket.error('doc ' + docid + ': ' + message, err));
+    };
 
     log(`Setting up event listeners for socket ${socket.id}`);
     provider.on('delete', handleDocDestroy);

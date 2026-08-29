@@ -12,19 +12,29 @@ export class YSyncDocument extends EventEmitter {
         super();
         this.ws.on('reconnect', this.handleReconnect.bind(this));
         this.ws.on('syncStep1', this.handleSyncStep1.bind(this));
+        this.ws.on('syncStep1:error', this.handleSyncStep1Error.bind(this));
         this.ws.on('syncStep2', this.handleSyncStep2.bind(this));
         this.ws.on('syncUpdate', this.handleSyncUpdate.bind(this));
     }
 
-    sync(doc: Y.Doc, cb?: (doc: Y.Doc) => void) {
+    sync(doc: Y.Doc, cb?: (err: any, doc: Y.Doc) => void) {
         this.provider.addYDocument(doc);
         doc.on('destroy', this.handleDocDestroy.bind(this));
-        this.once('synced:' + doc.guid, (doc: Y.Doc) => {
+        this.once('synced:' + doc.guid, (err: any, doc: Y.Doc) => {
+            if (err) {
+                this.provider.removeYDocument(doc.guid);
+                cb?.(err, doc);
+                return;
+            }
             log('Document synced:', doc.guid);
             doc.on('update', this.handleDocUpdate.bind(this));
-            cb?.(doc);
+            cb?.(null, doc);
         });
         this.syncStep1(doc);
+    }
+
+    private handleSyncStep1Error(docId: string, error: any) {
+        this.emit('synced:' + docId, error, this.provider.getYDocument(docId));
     }
 
     private syncStep1(doc: Y.Doc) {
@@ -51,7 +61,7 @@ export class YSyncDocument extends EventEmitter {
             return;
         }
         Y.applyUpdate(doc, update, this);
-        this.emit('synced:' + docId, doc);
+        this.emit('synced:' + docId, null, doc);
     }
 
     private handleSyncUpdate(docId: string, update: Uint8Array) {

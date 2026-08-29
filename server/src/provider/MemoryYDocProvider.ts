@@ -41,7 +41,9 @@ export class MemoryYDocProvider extends YDocProvider {
 
     private handleDocDestroy(doc: Y.Doc) {
         log(`Document destroyed: ${doc.guid}`);
-        this.emit('delete', doc);
+        const entry = this.docs.get(doc.guid);
+        let sockets = entry?.sockets || [];
+        this.emit('delete', doc, sockets);
         this.docs.delete(doc.guid);
     }
 
