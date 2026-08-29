@@ -34,3 +34,13 @@ The format follows Keep a Changelog recommendations.
 ### fixed
 
 - Keep the server active when the WebSocket closes.
+
+## [1.0.3] - 2026-08-29
+
+### Added
+
+- Middleware mongoose, create and update options
+
+### fixed
+
+- Client missing connect function
