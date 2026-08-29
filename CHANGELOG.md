@@ -24,3 +24,13 @@ The format follows Keep a Changelog recommendations.
 ### Added
 
 - Add Websocket option path
+
+## [1.0.2] - 2026-08-29
+
+### Added
+
+- Websocket authentification
+
+### fixed
+
+- Keep the server active when the WebSocket closes.
