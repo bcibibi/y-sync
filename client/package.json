@@ -1,6 +1,6 @@
 {
   "name": "@bcibibi/y-sync-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Client for syncing Yjs documents over WebSockets connections. This package is part of the y-sync project.",
   "keywords": [
     "yjs",

@@ -1,6 +1,6 @@
 {
   "name": "@bcibibi/y-sync-redis",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Client for syncing Yjs documents over Redis",
   "keywords": [
     "yjs",

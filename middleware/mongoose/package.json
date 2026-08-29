@@ -1,6 +1,6 @@
 {
   "name": "@bcibibi/y-sync-middleware-mongoose",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Y server and client for syncing Yjs documents over Mongoose",
   "keywords": [
     "yjs",
