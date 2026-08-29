@@ -7,7 +7,7 @@ import { MemoryYDocProvider } from './provider/MemoryYDocProvider.js';
 import * as Y from 'yjs';
 import type { YSyncSocket } from './websocket/socket.js';
 import type { YSyncOptions, YSyncWebSocketOptions, YSyncAwarenessOptions } from './types/options.js';
-import type { YSyncMiddleware, YSyncAction } from './types/middleware.js';
+import type { YSyncMiddleware, YSyncAction, YSyncTransaction } from './types/middleware.js';
 import type { YSyncWebSocketAuthFct } from './types/websocket.js';
 
 export type {
@@ -16,6 +16,8 @@ export type {
     YSyncOptions,
     YSyncWebSocketOptions,
     YSyncAwarenessOptions,
+    YSyncTransaction,
+    YSyncWebSocketAuthFct
 }
 
 export { MemoryYDocProvider } from './provider/MemoryYDocProvider.js';
@@ -44,36 +46,36 @@ export class YSyncServer {
         this.middleware.push(cb);
     }
 
+
     private handleSync(socket: YSyncSocket, options: YSyncWebSocketOptions) {
-        sync(socket, options, { onCreate: this.handleCreate.bind(this), onUpdate: this.handleUpdate.bind(this), onDestroy: this.handleDestroy.bind(this) });
+        sync(socket, options, {
+            onCreate: this.handleCreate.bind(this),
+            onUpdate: this.handleUpdate.bind(this),
+            onDestroy: this.handleDestroy.bind(this)
+        });
     }
 
-    private handleCreate(doc: Y.Doc) {
-        return Y.transact(doc, async () => {
-            for (const cb of this.middleware) {
-                await cb(doc, 'create');
-            }
-        }, 'middleware');
+    private handleMiddlewareTransaction(doc: Y.Doc): YSyncTransaction {
+        return <R>(cb: () => R) => Y.transact(doc, cb, 'middleware');
     }
 
-    private handleUpdate(doc: Y.Doc, origin: any) {
-        if (origin !== 'middleware') {
-            Y.transact(doc, async () => {
-                for (const cb of this.middleware) {
-                    await cb(doc, 'update', origin);
-                }
-            }, 'middleware')
-                .catch(err => console.error('Error in middleware update:', err));
+    private async handleCreate(doc: Y.Doc, err: (err: any) => void) {
+        for (const cb of this.middleware) {
+            await cb(doc, 'create', this.handleMiddlewareTransaction(doc), undefined, err);
         }
     }
 
-    private async handleDestroy(doc: Y.Doc) {
-        try {
+    private async handleUpdate(doc: Y.Doc, origin: any, err: (err: any) => void) {
+        if (origin !== 'middleware') {
             for (const cb of this.middleware) {
-                await cb(doc, 'delete');
+                await cb(doc, 'update', this.handleMiddlewareTransaction(doc), origin, err);
             }
-        } catch (err) {
-            console.error('Error in middleware delete:', err);
+        }
+    }
+
+    private async handleDestroy(doc: Y.Doc, err: (err: any) => void) {
+        for (const cb of this.middleware) {
+            await cb(doc, 'delete', this.handleMiddlewareTransaction(doc), undefined, err);
         }
     }
 

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { YSyncMongoose } from "@bcibibi/y-sync-middleware-mongoose/client";
+import * as Y from 'yjs';
 
 
 interface TestDocument {
@@ -29,8 +30,20 @@ export async function connectToDatabase() {
     return newDoc;
 }
 
-export async function getMongooseDocument(id: string) {
+export async function withMongooseDocument(id: string, callback: (doc: Y.Map<any>) => Promise<void> | void, errcb?: (error: any) => void) {
     const client = new YSyncMongoose('ws://localhost:3000');
-    await new Promise<void>(resolve => client.once('connect', resolve));
-    return client.getMongooseDocument<TestDocument>("Test", id);
+    try {
+        client.on('error', (err) => {
+            console.error('YSyncMongoose client error:', err);
+            errcb?.(err);
+        });
+        await new Promise<void>(resolve => client.once('connect', resolve));
+        const doc = await client.getMongooseDocument<TestDocument>("Test", id);
+        await callback(doc);
+    } catch(err) {
+        console.error('Error in withMongooseDocument:', err);
+        throw err;
+    } finally {
+        client.close();
+    }
 }

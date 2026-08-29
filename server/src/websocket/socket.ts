@@ -77,4 +77,12 @@ export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
         });
     }
 
+    error(message: string, error: any) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        this.send('error', { 
+            message,
+            name : err.name,
+            stack : err.stack
+        });
+    }
 }
