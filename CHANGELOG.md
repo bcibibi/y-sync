@@ -18,3 +18,9 @@ The format follows Keep a Changelog recommendations.
 
 - First public release of the y-sync suite.
 - npm workspaces for client, server, redis, mongoose middleware, utilities, and react.
+
+## [1.0.1] - 2026-08-25
+
+### Added
+
+- Add Websocket option path
