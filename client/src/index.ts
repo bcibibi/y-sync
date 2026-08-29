@@ -11,8 +11,9 @@ export type {
     YSyncClientOptions,
 }
 
-export class YSyncClient extends EventEmitter<YSyncClientEvents> {
+export class YSyncClient {
 
+    private events: EventEmitter<YSyncClientEvents>;
     private ws: YSyncClientWebSocket;
     private provider: YDocumentProvider;
     private syncDocument: YSyncDocument;
@@ -22,26 +23,45 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
         return this.ws.id;
     }
 
+    get connected() {
+        return this.ws.connected;
+    }
+
     constructor(private url: string, options?: YSyncClientOptions) {
-        super();
+        this.events = new EventEmitter<YSyncClientEvents>();
         this.provider = new YDocumentProvider();
         this.ws = new YSyncClientWebSocket(url, options ? options : {});
         this.ws.on('connect', () => {
-            this.emit('connect');
+            this.events.emit('connect');
         });
         this.ws.on('disconnect', () => {
-            this.emit('disconnect');
+            this.events.emit('disconnect');
         });
         this.ws.on('reconnect', () => {
-            this.emit('reconnect');
+            this.events.emit('reconnect');
         });
         this.ws.on('error', (error: unknown) => {
-            this.emit('error', error);
+            this.events.emit('error', error);
         });
         this.syncDocument = new YSyncDocument(this.ws, this.provider);
         this.syncAwareness = new YSyncAwareness(this.ws);
     }
 
+    on<EventKey extends keyof YSyncClientEvents>(event: EventKey, listener: (...data: YSyncClientEvents[EventKey]) => void) {
+        this.events.on(event, listener);
+    }
+
+    once<EventKey extends keyof YSyncClientEvents>(event: EventKey, listener: (...data: YSyncClientEvents[EventKey]) => void) {
+        this.events.once(event, listener);
+    }
+
+    off<EventKey extends keyof YSyncClientEvents>(event: EventKey, listener: (...data: YSyncClientEvents[EventKey]) => void) {
+        this.events.off(event, listener);
+    }
+
+    connect() {
+        this.ws.connect();
+    }
 
     async getYDocument(id: string, meta: Record<string, any> = {}): Promise<Y.Doc> {
         let doc = this.provider.getYDocument(id);
@@ -59,9 +79,9 @@ export class YSyncClient extends EventEmitter<YSyncClientEvents> {
     }
 
     close() {
-        this.ws.disconnect();
-        this.ws.on('disconnect', () => {
+        this.ws.once('disconnect', () => {
             this.ws.removeAllListeners();
         });
+        this.ws.disconnect();
     }
 }

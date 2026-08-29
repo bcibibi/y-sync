@@ -9,7 +9,7 @@ const log = debug("y-sync:client:ws");
 
 export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvents> {
     private _id: string = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    private connected: boolean = false;
+    private _connected: boolean = false;
     private connecting: boolean = false;
     private nbConnection: number = 0;
     private ws: InstanceType<YSyncWebSocketConstructor> | undefined;
@@ -21,6 +21,10 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
 
     get id(): string {
         return this._id;
+    }
+
+    get connected(): boolean {
+        return this._connected;
     }
 
     constructor(private url: string, {
@@ -48,7 +52,7 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
     }
 
     connect() {
-        if (this.connected || this.connecting) {
+        if (this._connected || this.connecting) {
             return;
         }
 
@@ -67,13 +71,13 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
 
     disconnect() {
         this.execReconnect = false;
-        if (!this.connected && !this.connecting) {
+        if (!this._connected && !this.connecting) {
             return;
         }
         log(`Disconnecting WebSocket ${this._id}`);
         this.ws?.close();
         this.ws = undefined;
-        this.connected = false;
+        this._connected = false;
         this.connecting = false;
         log('WebSocket disconnected');
     }
@@ -104,7 +108,7 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
     }
 
     send(event: string, ...args: any[]) {
-        if (!this.connected) {
+        if (!this._connected) {
             return;
         }
         log('WebSocket sending message:', event, ...args);
@@ -137,7 +141,7 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
 
     private handleOpen() {
         log('WebSocket handleOpen');
-        this.connected = true;
+        this._connected = true;
         this.connecting = false;
         this.nbConnection++;
         if (this.nbConnection > 1) {
@@ -151,7 +155,7 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
 
     private handleClose(event: any) {
         log('WebSocket handleClose:', event);
-        this.connected = false;
+        this._connected = false;
         this.connecting = false;
         this.emit('disconnect');
     }
