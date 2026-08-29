@@ -79,13 +79,6 @@ export class YSyncServer {
 
     close(cb?: (err?: Error) => void) {
         this.awareness.close();
-        this.ws.close(err => {
-            if (err) {
-                cb?.(err);
-                return;
-            } else {
-                this.server.close(cb);
-            }
-        });
+        this.ws.close(cb);
     }
 }

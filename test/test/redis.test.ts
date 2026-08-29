@@ -1,15 +1,15 @@
 import { YSyncClient } from "@bcibibi/y-sync-client";
 import { YSyncRedis } from "@bcibibi/y-sync-redis";
-import { RedisYDocProvider, YSyncServer } from "@bcibibi/y-sync-server";
+import { RedisYDocProvider } from "@bcibibi/y-sync-server";
 import { afterAll, beforeAll, expect, test } from "@jest/globals";
 import { Redis } from "ioredis";
 import { createYSyncClient } from "../utils/client.js";
 import { createRedisClient } from "../utils/redis.js";
-import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
+import { closeYSyncWebSocket, createYSyncWebSocket, type TestServer } from "../utils/server.js";
 import { timeout } from "../utils/timeout.js";
 
 const PORT = 3000;
-let ySync: YSyncServer;
+let s: TestServer;
 let clientRedis: YSyncRedis;
 let client1: YSyncClient;
 let client2: YSyncClient;
@@ -25,7 +25,7 @@ beforeAll(async () => {
     }
 
     const sub = pub.duplicate();
-    ySync = await createYSyncWebSocket(PORT, {
+    s = await createYSyncWebSocket(PORT, {
         provider: new RedisYDocProvider({
             pub, 
             sub,
@@ -33,7 +33,7 @@ beforeAll(async () => {
         })
     });
 
-    ySync.use((doc, action, origin) => {
+    s.ysync.use((doc, action, origin) => {
         console.log(`Action: ${action}, Origin:`, origin?.constructor?.name ? origin.constructor.name : origin);
         if (action === 'create') {
             console.log(`Document created with id: ${doc.guid}`);
@@ -108,5 +108,5 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
 afterAll(async () => {
     client1.close();
     // client2.close();
-    return closeYSyncWebSocket(ySync);
+    return closeYSyncWebSocket(s);
 }, 10000);
