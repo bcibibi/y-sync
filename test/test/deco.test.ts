@@ -1,18 +1,17 @@
-import { beforeAll, test, afterAll } from "@jest/globals";
-import { YSyncServer } from "@bcibibi/y-sync-server";
-import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
+import { afterAll, beforeAll, test } from "@jest/globals";
 import { createYSyncClient } from "../utils/client.js";
+import { closeYSyncWebSocket, createYSyncWebSocket, type TestServer } from "../utils/server.js";
 import { timeout } from "../utils/timeout.js";
 
 const PORT = 3000;
 
-let ySync: YSyncServer;
+let s: TestServer;
 
 const startServer = async () => {
 
-    ySync = await createYSyncWebSocket(PORT, {path: "/test-path/ysync"});
+    s = await createYSyncWebSocket(PORT, { path: "/test-path/ysync" });
 
-    ySync.use((doc, action) => {
+    s.ysync.use((doc, action) => {
         if (action === 'create') {
             console.log(`Document created with id: ${doc.guid}`);
             doc.getMap("testMap").set("testKey", "initialValue");
@@ -28,7 +27,7 @@ beforeAll(startServer, 10000);
 
 test("test", () => new Promise<void>(async (resolve, reject) => {
     const client = await createYSyncClient(PORT, {}, { reconnectInterval: 2000, path: "/test-path/ysync" });
-    
+
     client.on('reconnect', () => {
         console.log("Client reconnected to server");
         setTimeout(() => {
@@ -46,17 +45,12 @@ test("test", () => new Promise<void>(async (resolve, reject) => {
 
     console.log("Closing server to simulate disconnection");
 
-    ySync.close(err => {
-        if (err) {
-            console.error("Error closing YSync instance:", err);
-        } else {
-            doc.getMap("testMap").set("testKey", "newValue");
-            console.log("Server closed, waiting for client to reconnect...");
-            setTimeout(startServer, 2000);
-        }
-    });
+    await closeYSyncWebSocket(s);
+    doc.getMap("testMap").set("testKey", "newValue");
+    console.log("Server closed, waiting for client to reconnect...");
+    setTimeout(startServer, 2000);
 }), 15000);
 
 afterAll(async () => {
-    return closeYSyncWebSocket(ySync);
+    return closeYSyncWebSocket(s);
 }, 10000);

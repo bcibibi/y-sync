@@ -1,15 +1,14 @@
-import { beforeAll, test, afterAll, expect } from "@jest/globals";
-import { YSyncServer } from "@bcibibi/y-sync-server";
-import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
+import { afterAll, beforeAll, expect, test } from "@jest/globals";
 import { createYSyncClient } from "../utils/client.js";
+import { closeYSyncWebSocket, createYSyncWebSocket, type TestServer } from "../utils/server.js";
 import { timeout } from "../utils/timeout.js";
 
 const PORT = 3000;
 
-let ySync: YSyncServer;
+let s: TestServer;
 
 beforeAll(async () => {
-    ySync = await createYSyncWebSocket(PORT, {
+    s = await createYSyncWebSocket(PORT, {
         awareness: {
             resyncInterval: 2000
         }
@@ -39,5 +38,5 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
 }), 10000);
 
 afterAll(async () => {
-    return closeYSyncWebSocket(ySync);
+    return closeYSyncWebSocket(s);
 }, 10000);

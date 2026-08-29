@@ -1,21 +1,20 @@
-import { beforeAll, test, afterAll, expect } from "@jest/globals";
-import { connectToDatabase, getMongooseDocument } from "../utils/mongoose.js";
-import { YSyncServer } from "@bcibibi/y-sync-server";
-import { createYSyncWebSocket } from "../utils/server.js";
 import { ySyncMongooseMiddleware } from "@bcibibi/y-sync-middleware-mongoose/middleware";
+import { afterAll, beforeAll, expect, test } from "@jest/globals";
+import { connectToDatabase, getMongooseDocument } from "../utils/mongoose.js";
+import { closeYSyncWebSocket, createYSyncWebSocket, type TestServer } from "../utils/server.js";
 import { timeout } from "../utils/timeout.js";
 
 let id: string | undefined = undefined;
 const PORT = 3000;
-let ySync: YSyncServer;
+let s: TestServer;
 
 beforeAll(async () => {
     id = await connectToDatabase().then(doc => doc._id.toString());
     expect(id).toBeDefined();
 
-    ySync = await createYSyncWebSocket(PORT);
+    s = await createYSyncWebSocket(PORT);
 
-    ySync.use(ySyncMongooseMiddleware({ wait: 1000 }));
+    s.ysync.use(ySyncMongooseMiddleware({ wait: 1000 }));
 }, 10000);
 
 test("mongoose", async () => {
@@ -32,5 +31,5 @@ test("mongoose", async () => {
 })
 
 afterAll(async () => {
-    await ySync.close();
+    return closeYSyncWebSocket(s);
 });

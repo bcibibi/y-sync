@@ -1,17 +1,16 @@
-import { YSyncServer } from "@bcibibi/y-sync-server";
 import { afterAll, beforeAll, expect, test } from "@jest/globals";
 import { createYSyncClient } from "../utils/client.js";
-import { closeYSyncWebSocket, createYSyncWebSocket } from "../utils/server.js";
+import { closeYSyncWebSocket, createYSyncWebSocket, type TestServer } from "../utils/server.js";
 import { timeout } from "../utils/timeout.js";
 
 const PORT = 3000;
-let ySync: YSyncServer;
+let s: TestServer;
 
 beforeAll(async () => {
 
-    ySync = await createYSyncWebSocket(PORT);
+    s = await createYSyncWebSocket(PORT);
 
-    ySync.use((doc, action, origin) => {
+    s.ysync.use((doc, action, origin) => {
         if (action === 'create') {
             console.log(`Document created with id: ${doc.guid}`);
             console.log(`DocumentMeta:`, doc.meta);
@@ -55,5 +54,5 @@ test("test", async () => new Promise<void>(async (resolve, reject) => {
 }), 15000);
 
 afterAll(async () => {
-    return closeYSyncWebSocket(ySync);
+    return closeYSyncWebSocket(s);
 }, 10000);

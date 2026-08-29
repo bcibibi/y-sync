@@ -1,7 +1,9 @@
 import { YSyncServer, type YSyncOptions, type YSyncWebSocketOptions } from "@bcibibi/y-sync-server";
 import http from "http";
 
-export async function createYSyncWebSocket(port: number, options?: YSyncOptions): Promise<YSyncServer> {
+export type TestServer = { server: http.Server, ysync: YSyncServer };
+
+export async function createYSyncWebSocket(port: number, options?: YSyncOptions): Promise<TestServer> {
 
     const server = http.createServer((req, res) => {
         res.statusCode = 200;
@@ -9,7 +11,7 @@ export async function createYSyncWebSocket(port: number, options?: YSyncOptions)
         res.end("Hello world\n");
     });
 
-    const ySync = new YSyncServer(server, options);
+    const ysync = new YSyncServer(server, options);
 
     await new Promise<void>((resolve, reject) => {
         server.listen(port, (err?: Error) => {
@@ -22,18 +24,24 @@ export async function createYSyncWebSocket(port: number, options?: YSyncOptions)
         });
     });
 
-    return ySync;
+    return { server, ysync };
 
 }
 
-export async function closeYSyncWebSocket(ySync: YSyncServer): Promise<void> {
+export async function closeYSyncWebSocket({ server, ysync }: TestServer): Promise<void> {
     console.log("Closing YSync WebSocket server...");
     return new Promise<void>((resolve, reject) => {
-        ySync.close(err => {
+        ysync.close(err => {
             if (err) {
                 reject(err);
             } else {
-                resolve();
+                server.close(err => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
             }
         });
     });
