@@ -1,6 +1,6 @@
 {
   "name": "@bcibibi/y-sync-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Server for syncing Yjs documents over Websocket",
   "keywords": [
     "yjs",
