@@ -41,11 +41,11 @@
   ],
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
-    "copy:types": "node -e \"const fs=require('node:fs'); fs.mkdirSync('dist/esm/types',{recursive:true}); fs.copyFileSync('src/types/yjs.d.ts','dist/esm/types/yjs.d.ts');\"",
+    "reference": "node -e \"const fs=require('node:fs'); const declaration='dist/esm/override.d.ts'; fs.writeFileSync(declaration, '/// <reference path=\\\"../../types/yjs.d.ts\\\" />\\n' + fs.readFileSync(declaration, 'utf8'));\"",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:dist-types": "node -e \"const fs=require('node:fs'); fs.mkdirSync('dist/cjs',{recursive:true}); fs.writeFileSync('dist/cjs/package.json', '{\\n  \\\"type\\\": \\\"commonjs\\\"\\n}\\n'); fs.mkdirSync('dist/esm',{recursive:true}); fs.writeFileSync('dist/esm/package.json', '{\\n  \\\"type\\\": \\\"module\\\"\\n}\\n');\"",
-    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:dist-types && npm run copy:types",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:dist-types && npm run reference",
     "verify:esm": "node --input-type=module -e \"import('./dist/esm/index.js').then(() => { console.log('esm:ok'); })\"",
     "verify:cjs": "node -e \"require('./dist/cjs/index.js'); console.log('cjs:ok');\"",
     "verify:modules": "npm run build && npm run verify:esm && npm run verify:cjs"

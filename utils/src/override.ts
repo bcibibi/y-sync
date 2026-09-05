@@ -1,6 +1,5 @@
 import * as Y from 'yjs';
 import { YConverter } from './convert.js';
-import './types/yjs.d.ts';
 import debug from 'debug';
 
 const log = debug('y-utils:override');
