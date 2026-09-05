@@ -44,3 +44,10 @@ The format follows Keep a Changelog recommendations.
 ### fixed
 
 - Client missing connect function
+
+
+## [1.0.4] - 2026-09-05
+
+### fixed
+
+- Override yjs type with reference
