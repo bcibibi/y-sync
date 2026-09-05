@@ -1,6 +1,6 @@
 {
   "name": "@bcibibi/y-utils",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Utilities for Yjs documents, part of the y-sync project",
   "keywords": [
     "yjs",
