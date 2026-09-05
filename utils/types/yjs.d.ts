@@ -2,11 +2,11 @@ import * as Y from 'yjs';
 
 declare module 'yjs' {
 
-  type MapObject<D extends Record<string, any>> = {
+  export type MapObject<D extends Record<string, any>> = {
         [K in keyof D]: MapValue<D[K]>;
     };
 
-  type MapValue<SV> =
+  export type MapValue<SV> =
           SV extends string | number | boolean | Date ? Y.Text :
           SV extends (infer U)[] ? Y.Array<U> :
           SV extends Record<string, any> ? Y.Map<SV> :
@@ -14,7 +14,7 @@ declare module 'yjs' {
           SV extends null ? null :
           Y.AbstractType<SV>;
 
-  interface Text {
+  export interface Text {
     setText(value: string): void;
     getText(): string;
     setDate(value: Date): void;
@@ -26,7 +26,7 @@ declare module 'yjs' {
     toHtml?: () => string;
   }
   
-  interface Map<MapType extends Record<string, any>> {
+  export interface Map<MapType extends Record<string, any>> {
     get<V extends keyof MapType>(key: V): MapValue<MapType[V]> | undefined;
 
     getValue<V extends keyof MapType>(key: V): MapType[V] | undefined;
@@ -46,7 +46,7 @@ declare module 'yjs' {
     clone(): Y.Map<MapType>;
   }
 
-  interface Array<T> {
+  export interface Array<T> {
     get(index: number): MapValue<T>;
 
     getValue(index: number): T;
@@ -66,7 +66,7 @@ declare module 'yjs' {
     clone(): Y.Array<T>;
   }
 
-  interface Doc {
+  export interface Doc {
     getMap<MapType extends Record<string, any>>(name: string): Y.Map<MapType>;
 
     getArray<T>(name: string): Y.Array<T>;
