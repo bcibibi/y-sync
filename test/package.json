@@ -49,6 +49,6 @@
     "@bcibibi/y-sync-middleware-mongoose": "*",
     "@bcibibi/y-sync-redis": "*",
     "@bcibibi/y-utils": "*",
-    "ioredis": "^5.11.1"
+    "ioredis": "^6.0.0"
   }
 }
