@@ -13,4 +13,4 @@ export type YSyncWebSocketEvents = {
 };
 
 
-export type YSyncWebSocketAuthFct<R extends http.IncomingMessage = http.IncomingMessage> = (request: R, res: any, next: (result: Error | boolean) => void) => Promise<any> | any;
+export type YSyncWebSocketAuthFct = (socket: YSyncSocket, next: (result: Error | boolean) => void) => Promise<any> | any;

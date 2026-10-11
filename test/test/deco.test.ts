@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, test } from "@jest/globals";
+import { afterAll, beforeAll, test } from "vitest";
 import { createYSyncClient } from "../utils/client.js";
 import { closeYSyncWebSocket, createYSyncWebSocket, type TestServer } from "../utils/server.js";
 import { timeout } from "../utils/timeout.js";
@@ -28,7 +28,10 @@ beforeAll(startServer, 10000);
 test("test", () => new Promise<void>(async (resolve, reject) => {
     const client = await createYSyncClient(PORT, {}, { reconnectInterval: 2000, path: "/test-path/ysync" });
 
-    client.on('reconnect', () => {
+    client.on('connected', () => {
+        console.log("Client connected to server");
+    });
+    client.on('reconnected', () => {
         console.log("Client reconnected to server");
         setTimeout(() => {
             console.log("doc value after reconnect:", doc?.getMap("testMap").get("testKey"));

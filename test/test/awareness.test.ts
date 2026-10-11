@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from "@jest/globals";
+import { afterAll, beforeAll, expect, test } from "vitest";
 import { createYSyncClient } from "../utils/client.js";
 import { closeYSyncWebSocket, createYSyncWebSocket, type TestServer } from "../utils/server.js";
 import { timeout } from "../utils/timeout.js";

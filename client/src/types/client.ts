@@ -1,8 +1,8 @@
 
 
 export interface YSyncClientEvents {
-    connect: [];
-    reconnect: [];
-    disconnect: [];
+    connected: [];
+    reconnected: [];
+    disconnected: [];
     error: [error: unknown];
 }

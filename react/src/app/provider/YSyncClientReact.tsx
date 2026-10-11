@@ -20,11 +20,11 @@ export function YSyncClientReact(props: YSyncClientReactProps) {
 
     React.useEffect(() => {
         log("YSyncClientReact: connecting to", url, "with options", options);
-        let ysyncclient = new YSyncClient(url, options);
+        const ysyncclient = new YSyncClient(url, options);
         ysyncclient.on('error', (error) => {
             onError?.(error);
         });
-        ysyncclient.once('connect', () => {
+        ysyncclient.once('connected', () => {
             log("YSyncClientReact: connected to", url);
             setClient(ysyncclient);
         });

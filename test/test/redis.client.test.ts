@@ -1,4 +1,4 @@
-import { expect, test } from "@jest/globals";
+import { expect, test } from "vitest";
 import { createRedisClient } from "../utils/redis.js";
 import { timeout } from "../utils/timeout.js";
 

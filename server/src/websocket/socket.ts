@@ -17,9 +17,13 @@ export class YSyncSocket extends EventEmitter<YSyncSocketEvents> {
         return this._id;
     }
 
-    constructor(private ws: WebSocket, private request: http.IncomingMessage) { 
+    get request() {
+        return this._request;
+    }
+
+    constructor(private ws: WebSocket, private _request: http.IncomingMessage) { 
         super();
-        this._id = request.url ? new URL(request.url, `http://${request.headers.host}`).searchParams.get('id') ?? crypto.randomUUID() : crypto.randomUUID();
+        this._id = _request.url ? new URL(_request.url, `http://${_request.headers.host}`).searchParams.get('id') ?? crypto.randomUUID() : crypto.randomUUID();
         ws.on('message', this.handleMessage.bind(this));
         ws.on('error', this.handleError.bind(this));
         ws.on('close', this.handleClose.bind(this));

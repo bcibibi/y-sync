@@ -9,7 +9,7 @@ export async function createYSyncClient(port: number, {
     onDisconnect?: () => void
 } = {}, options?: YSyncClientOptions): Promise<YSyncClient> {
     const client = new YSyncClient(`ws://localhost:${port}`, options);
-    client.on('disconnect', () => {
+    client.on('disconnected', () => {
         console.log("Client disconnected from server");
         onDisconnect?.();
     });
@@ -18,6 +18,6 @@ export async function createYSyncClient(port: number, {
         onError?.(error);
     });
     console.log("Connecting client to server...");
-    await new Promise<void>((resolve) => client.once('connect', resolve));
+    await new Promise<void>((resolve) => client.once('connected', resolve));
     return client;
 }
