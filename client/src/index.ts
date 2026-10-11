@@ -31,14 +31,11 @@ export class YSyncClient {
         this.events = new EventEmitter<YSyncClientEvents>();
         this.provider = new YDocumentProvider();
         this.ws = new YSyncClientWebSocket(url, options ? options : {});
-        this.ws.on('connect', () => {
-            this.events.emit('connect');
+        this.ws.on('connected', () => {
+            this.events.emit(this.ws.reconnected ? 'reconnected' : 'connected');
         });
-        this.ws.on('disconnect', () => {
-            this.events.emit('disconnect');
-        });
-        this.ws.on('reconnect', () => {
-            this.events.emit('reconnect');
+        this.ws.on('disconnected', () => {
+            this.events.emit('disconnected');
         });
         this.ws.on('error', (error: unknown) => {
             this.events.emit('error', error);
@@ -85,7 +82,7 @@ export class YSyncClient {
     }
 
     close() {
-        this.ws.once('disconnect', () => {
+        this.ws.once('disconnected', () => {
             this.ws.removeAllListeners();
         });
         this.ws.disconnect();

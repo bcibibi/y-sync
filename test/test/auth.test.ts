@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, test } from "@jest/globals";
+import { afterAll, beforeAll, test } from "vitest";
 import { createYSyncClient } from "../utils/client.js";
 import { closeYSyncWebSocket, createYSyncWebSocket, type TestServer } from "../utils/server.js";
 
@@ -17,17 +17,27 @@ beforeAll(startServer, 10000);
 test("default", () => createYSyncClient(PORT).then(client => client.close()), 15000);
 
 test("unauthorized", () => new Promise<void>(async (resolve, reject) => {
-    s.ysync.auth((_req, _res, next) => next(false));
-    createYSyncClient(PORT, { onError: () => resolve()});
+    s.ysync.auth((socket, next) => next(false));
+    createYSyncClient(PORT, {
+        onError: (err) => {
+            console.error("Unauthorized error received:", err);
+            resolve();
+        }
+    });
 }), 15000);
 
 test("error", () => new Promise<void>(async (resolve, reject) => {
-    s.ysync.auth((_req, _res, next) => next(new Error("Unauthorized")));
-    createYSyncClient(PORT, { onError: () => resolve()});
+    s.ysync.auth((socket, next) => next(new Error("Unauthorized")));
+    createYSyncClient(PORT, {
+        onError: (err) => {
+            console.error("Unauthorized error received:", err);
+            resolve();
+        }
+    });
 }), 15000);
 
 test("authorized", async () => {
-    s.ysync.auth((_req, _res, next) => next(true));
+    s.ysync.auth((socket, next) => next(true));
     const client = await createYSyncClient(PORT);
     client.close();
 }, 15000);

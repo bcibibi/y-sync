@@ -27,6 +27,10 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
         return this._connected;
     }
 
+    get reconnected(): boolean {
+        return this.nbConnection > 1;
+    }
+
     constructor(private url: string, {
         autoconnect = true,
         reconnectInterval = 5000,
@@ -41,6 +45,12 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
         if (autoconnect) {
             this.connect();
         }
+        this.on('connected', () => {
+            log(`WebSocket ${this._id} connected`);
+            this._connected = true;
+            this.connecting = false;
+            this.nbConnection++;
+        });
     }
 
     private static resolveGlobalWebSocket(): YSyncWebSocketConstructor {
@@ -141,23 +151,17 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
 
     private handleOpen() {
         log('WebSocket handleOpen');
-        this._connected = true;
-        this.connecting = false;
-        this.nbConnection++;
-        if (this.nbConnection > 1) {
-            log('WebSocket reconnected');
-            this.emit('reconnect');
-        } else {
-            log('WebSocket first connection established');
-            this.emit('connect');
-        }
     }
 
     private handleClose(event: any) {
         log('WebSocket handleClose:', event);
         this._connected = false;
         this.connecting = false;
-        this.emit('disconnect');
+        if (event.code === 4001) {
+            this.emit('error', event.reason);
+        } else {
+            this.emit('disconnected');
+        }
     }
 
     private handleError(error: unknown) {

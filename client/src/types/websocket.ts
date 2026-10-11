@@ -1,9 +1,8 @@
 
 
 export interface YSyncClientWebSocketEvents {
-    connect: [];
-    reconnect: [];
-    disconnect: [];
+    connected: [];
+    disconnected: [];
     error: [error: unknown];
     [event: string]: any[];
 }

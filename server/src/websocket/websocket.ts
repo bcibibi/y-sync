@@ -12,19 +12,16 @@ export class YSyncWebSocket extends EventEmitter<YSyncWebSocketEvents> {
 
     private wss: WebSocketServer;
     private _auth: YSyncWebSocketAuthFct;
-
+    
     constructor(private server: http.Server, private options: YSyncWebSocketOptions) {
         super();
-        this.wss = new WebSocketServer({ noServer: true, path: options.path });
-        this._auth = (_req, _res, next) => next(true);
+        this.wss = new WebSocketServer({ noServer: true });
+        this._auth = (_socket, next) => next(true);
         this.server.on('upgrade', (request, socket, head) => {
-            this._auth(request, null, (result: Error | boolean) => {
-                if (result instanceof Error || result === false) {
-                    socket.destroy();
-                    return;
-                }
+            const { pathname } = new URL(request.url ?? '', 'http://localhost');
+            if (pathname === this.options.path) {
                 this.wss?.handleUpgrade(request, socket, head, this.handleUpgradeCallback.bind(this));
-            });
+            }
         })
     }
 
@@ -32,8 +29,17 @@ export class YSyncWebSocket extends EventEmitter<YSyncWebSocketEvents> {
         try {
             log("New YSyncSocket connection established");
             const socket = new YSyncSocket(ws, request);
-            socket.on('disconnect', this.handleSocketDisconnect.bind(this));
-            this.emit('connection', socket);
+            this._auth(socket, (result: Error | boolean) => {
+                if (result instanceof Error || result === false) {
+                    const message = result instanceof Error ? result.message : 'Authentication failed';
+                    console.error("Authentication failed for YSyncSocket:", message);
+                    ws.close(4001, message);
+                    return;
+                }
+                socket.on('disconnect', this.handleSocketDisconnect.bind(this));
+                socket.send('connected');
+                this.emit('connection', socket);
+            });
         } catch (error) {
             console.error("Failed to create YSyncSocket:", error);
             ws.close();

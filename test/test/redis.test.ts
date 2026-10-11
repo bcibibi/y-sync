@@ -1,7 +1,7 @@
 import { YSyncClient } from "@bcibibi/y-sync-client";
 import { YSyncRedis } from "@bcibibi/y-sync-redis";
 import { RedisYDocProvider } from "@bcibibi/y-sync-server";
-import { afterAll, beforeAll, expect, test } from "@jest/globals";
+import { afterAll, beforeAll, expect, test } from "vitest";
 import { Redis } from "ioredis";
 import { createYSyncClient } from "../utils/client.js";
 import { createRedisClient } from "../utils/redis.js";

@@ -1,5 +1,3 @@
 {
-  "jest.enable": true,
-  "jest.rootPath": "test",
-  "jest.runMode": "on-demand"
+  "vitest.rootConfig": "./test/vitest.config.ts"
 }
