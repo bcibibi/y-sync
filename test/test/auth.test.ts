@@ -37,7 +37,9 @@ test("error", () => new Promise<void>(async (resolve, reject) => {
 }), 15000);
 
 test("authorized", async () => {
-    s.ysync.auth((socket, next) => next(true));
+    s.ysync.auth((socket, next) => {
+        next(socket.request?.headers?.test === "test");
+    });
     const client = await createYSyncClient(PORT);
     client.close();
 }, 15000);
