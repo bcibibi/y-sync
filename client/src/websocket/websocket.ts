@@ -16,7 +16,8 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
     private lastMessageTime: number;
     private _websocket: YSyncWebSocketConstructor;
     private reconnectInterval: number;
-    private path: string
+    private path: string;
+    private headers: Record<string, string> | undefined;
     private execReconnect = false;
 
     get id(): string {
@@ -34,6 +35,7 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
     constructor(private url: string, {
         autoconnect = true,
         reconnectInterval = 5000,
+        headers = {},
         path = "/ysync",
         websocket
     }: YSyncClientOptions) {
@@ -41,7 +43,11 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
         this.lastMessageTime = Date.now();
         this.reconnectInterval = reconnectInterval;
         this.path = path;
+        this.headers = headers;
         this._websocket = websocket ?? YSyncClientWebSocket.resolveGlobalWebSocket();
+        if (headers && Object.keys(headers).length > 0 && this._websocket === globalThis.WebSocket) {
+            throw new Error("Native WebSocket does not support custom headers. Pass a compatible implementation using options.websocket (e.g. ws in Node.js).");
+        }
         if (autoconnect) {
             this.connect();
         }
@@ -69,7 +75,9 @@ export class YSyncClientWebSocket extends EventEmitter<YSyncClientWebSocketEvent
         this.connecting = true;
         log(`Connecting to WebSocket server at ${this.url} using ${this._websocket.name}, id ${this._id}`);
         const url = this.buildUrlWithParams(this.url, { id: this._id });
-        this.ws = new this._websocket(url);
+        this.ws = this.headers && Object.keys(this.headers).length > 0
+            ? new this._websocket(url, undefined, { headers: this.headers })
+            : new this._websocket(url);
         this.ws.binaryType = 'arraybuffer';
         this.ws.onopen = this.handleOpen.bind(this);
         this.ws.onclose = this.handleClose.bind(this);

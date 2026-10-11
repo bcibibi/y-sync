@@ -34,9 +34,17 @@ import WebSocket from 'ws'
 import { YSyncClient } from '@bcibibi/y-sync-client'
 
 const client = new YSyncClient('ws://localhost:1234', {
-  websocket: WebSocket
+  websocket: WebSocket,
+  headers: { Authorization: 'Bearer your-token' }
 })
 ```
+
+Browsers use `globalThis.WebSocket` automatically. Native WebSocket implementations
+(including those provided by browsers and Node.js) do not support custom HTTP
+headers. Setting non-empty `headers` with the native implementation throws an
+error. To send custom headers in Node.js, pass a compatible implementation such
+as `ws` as shown above. Browser authentication must use a browser-supported
+mechanism, such as cookies configured by your server.
 
 ## Options
 
@@ -59,6 +67,11 @@ Available options:
 - `websocket?: YSyncWebSocketConstructor`
   - Custom WebSocket constructor.
   - Required in environments where `globalThis.WebSocket` is not available (typically Node.js).
+
+- `headers?: Record<string, string>`
+  - Custom HTTP headers sent during the WebSocket handshake.
+  - Requires an implementation supporting `new WebSocket(url, undefined, { headers })`, such as `ws` in Node.js.
+  - Not supported by native browser or Node.js WebSocket implementations.
 
 Example with options:
 

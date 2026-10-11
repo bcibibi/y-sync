@@ -1,5 +1,6 @@
 
 import { YSyncClient, type YSyncClientOptions } from "@bcibibi/y-sync-client";
+import WebSocket from "ws";
 
 export async function createYSyncClient(port: number, {
     onError, 
@@ -8,7 +9,7 @@ export async function createYSyncClient(port: number, {
     onError?: (error: any) => void, 
     onDisconnect?: () => void
 } = {}, options?: YSyncClientOptions): Promise<YSyncClient> {
-    const client = new YSyncClient(`ws://localhost:${port}`, options);
+    const client = new YSyncClient(`ws://localhost:${port}`, { ...options, websocket: WebSocket, headers: { test: "test" } });
     client.on('disconnected', () => {
         console.log("Client disconnected from server");
         onDisconnect?.();
